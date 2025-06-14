@@ -139,9 +139,9 @@ namespace InGameHUD.Managers
 
                         // 使用完全限定的表名
                         string creditsQuery = $@"
-                    SELECT `{creditsColumn}` 
-                    FROM `{_config.MySqlConnection.Database}`.`{creditsTable}` 
-                    WHERE steam_id = @steamId;";
+                            SELECT `{creditsColumn}` 
+                            FROM `{_config.MySqlConnection.Database}`.`{creditsTable}` 
+                            WHERE SteamID = @steamId;";
 
                         creditsCommand.CommandText = creditsQuery;
                         creditsCommand.Parameters.AddWithValue("@steamId", steamId);
@@ -179,9 +179,9 @@ namespace InGameHUD.Managers
 
                         // 使用完全限定的表名
                         string playtimeQuery = $@"
-                    SELECT `{playtimeColumn}` 
-                    FROM `{_config.MySqlConnection.Database}`.`{playtimeTable}` 
-                    WHERE steam_id = @steamId;";
+                            SELECT `{playtimeColumn}` 
+                            FROM `{_config.MySqlConnection.Database}`.`{playtimeTable}` 
+                            WHERE steam_id = @steamId;";
 
                         playtimeCommand.CommandText = playtimeQuery;
                         playtimeCommand.Parameters.AddWithValue("@steamId", steamId);

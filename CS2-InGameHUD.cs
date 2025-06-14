@@ -181,8 +181,8 @@ namespace InGameHUD
                 if (playerData.CustomData.ContainsKey("playtime"))
                 {
                     var playtime = int.Parse(playerData.CustomData["playtime"]);
-                    var hours = playtime / 60;
-                    var minutes = playtime % 60;
+                    var hours = playtime / 3600;
+                    var minutes = (playtime % 3600) / 60;
                     hudBuilder.AppendLine($"游玩时长: {hours}小时{minutes}分钟");
                 }
 
