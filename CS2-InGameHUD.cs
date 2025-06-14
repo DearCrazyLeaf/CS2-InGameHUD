@@ -145,7 +145,8 @@ namespace InGameHUD
                 var hudBuilder = new StringBuilder();
 
                 // 玩家名称
-                hudBuilder.AppendLine($"名称: {player.PlayerName}");
+                hudBuilder.AppendLine($"你好！【{player.PlayerName}】");
+                hudBuilder.AppendLine($"===================");
 
                 // KDA统计
                 if (Config.ShowKDA && player.ActionTrackingServices?.MatchStats != null)
@@ -175,7 +176,7 @@ namespace InGameHUD
                 // 添加自定义数据
                 if (playerData.CustomData.ContainsKey("credits"))
                 {
-                    hudBuilder.AppendLine($"积分(重新加入刷新): {playerData.CustomData["credits"]}");
+                    hudBuilder.AppendLine($"积分: {playerData.CustomData["credits"]}");
                 }
 
                 if (playerData.CustomData.ContainsKey("playtime"))
@@ -183,8 +184,13 @@ namespace InGameHUD
                     var playtime = int.Parse(playerData.CustomData["playtime"]);
                     var hours = playtime / 3600;
                     var minutes = (playtime % 3600) / 60;
-                    hudBuilder.AppendLine($"游玩时长(每回合刷新): {hours}小时{minutes}分钟");
+                    hudBuilder.AppendLine($"游玩时长: {hours}小时{minutes}分钟");
                 }
+                    hudBuilder.AppendLine($"上次签到：开发中");
+                    hudBuilder.AppendLine($"===================");
+                    hudBuilder.AppendLine($"!help查看帮助");
+                    hudBuilder.AppendLine($"!store打开商店");
+                    hudBuilder.AppendLine($"官方网站：hlymcn.cn");
 
                 // 显示HUD
                 _api?.Native_GameHUD_ShowPermanent(player, MAIN_HUD_CHANNEL, hudBuilder.ToString());
