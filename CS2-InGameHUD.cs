@@ -65,6 +65,19 @@ namespace InGameHUD
                 RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
                 RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
 
+                AddTimer(0.2f, () =>
+                {
+                    foreach (var player in Utilities.GetPlayers())
+                    {
+                        if (player == null || !player.IsValid || player.IsBot) continue;
+                        var steamId = player.SteamID.ToString();
+                        if (_playerCache.TryGetValue(steamId, out var playerData) && playerData.HUDEnabled)
+                        {
+                            _hudManager.UpdateHUD(player, playerData);
+                        }
+                    }
+                }, TimerFlags.REPEAT);
+
                 if (hotReload)
                 {
                     ReloadAllPlayersHUD();
@@ -76,7 +89,6 @@ namespace InGameHUD
                 throw;
             }
         }
-
 
         private async void ReloadAllPlayersHUD()
         {
@@ -251,17 +263,16 @@ namespace InGameHUD
         {
             try
             {
-                foreach (var kvp in _playerCache)
+                foreach (var player in Utilities.GetPlayers())
                 {
-                    _dbManager?.SavePlayerData(kvp.Key, kvp.Value).Wait();
+                    _hudManager.DisableHUD(player);  
                 }
-
-                _playerCache.Clear();
-                Console.WriteLine("[InGameHUD] Plugin unloaded successfully!");
+                _playerCache?.Clear();
+                _api = null;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[InGameHUD] Error during unload: {ex.Message}");
+                Console.WriteLine($"[InGameHUD] Unload error: {ex.Message}");
             }
         }
     }
