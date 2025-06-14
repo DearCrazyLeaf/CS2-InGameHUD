@@ -4,194 +4,105 @@ namespace InGameHUD.Managers
 {
     public class LanguageManager
     {
-        private readonly Dictionary<string, Dictionary<string, object>> _translations;
+        private readonly Dictionary<string, Dictionary<string, string>> _phrases = new();
         private readonly string _defaultLanguage;
-        private readonly string _langDirectory;
 
-        public LanguageManager(string moduleDirectory, string defaultLanguage = "zh")
+        public LanguageManager(string moduleDirectory, string defaultLanguage)
         {
-            _translations = new Dictionary<string, Dictionary<string, object>>();
             _defaultLanguage = defaultLanguage;
-            _langDirectory = Path.Combine(moduleDirectory, "lang");
-            LoadTranslations();
+            LoadLanguages(moduleDirectory);
         }
 
-        private void LoadTranslations()
+        private void LoadLanguages(string moduleDirectory)
         {
-            try
+            var langDir = Path.Combine(moduleDirectory, "lang");
+            if (!Directory.Exists(langDir))
             {
-                if (!Directory.Exists(_langDirectory))
-                {
-                    Directory.CreateDirectory(_langDirectory);
-                    CreateDefaultLanguageFiles();
-                }
-
-                foreach (var file in Directory.GetFiles(_langDirectory, "*.json"))
-                {
-                    try
-                    {
-                        var language = Path.GetFileNameWithoutExtension(file);
-                        var json = File.ReadAllText(file);
-                        var translation = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
-                        if (translation != null)
-                        {
-                            _translations[language] = translation;
-                            Console.WriteLine($"[InGameHUD] Loaded language file: {language}");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"[InGameHUD] Error loading language file {file}: {ex.Message}");
-                    }
-                }
-
-                if (!_translations.ContainsKey(_defaultLanguage))
-                {
-                    Console.WriteLine($"[InGameHUD] Default language '{_defaultLanguage}' not found, creating it...");
-                    CreateDefaultLanguageFiles();
-                    LoadTranslations();
-                }
+                Directory.CreateDirectory(langDir);
+                CreateDefaultLanguageFiles(langDir);
             }
-            catch (Exception ex)
+
+            foreach (var file in Directory.GetFiles(langDir, "*.json"))
             {
-                Console.WriteLine($"[InGameHUD] Error in LoadTranslations: {ex.Message}");
-                throw;
+                var lang = Path.GetFileNameWithoutExtension(file);
+                var json = File.ReadAllText(file);
+                try
+                {
+                    var phrases = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+                    if (phrases != null)
+                    {
+                        _phrases[lang] = phrases;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[InGameHUD] Error loading language file {file}: {ex.Message}");
+                }
             }
         }
 
-        private void CreateDefaultLanguageFiles()
+        private void CreateDefaultLanguageFiles(string langDir)
         {
-            var zhContent = new Dictionary<string, object>
+            var defaultPhrases = new Dictionary<string, string>
             {
-                ["hud"] = new Dictionary<string, string>
-                {
-                    ["player_name"] = "玩家: {0}",
-                    ["kda"] = "KDA: {0}/{1}/{2}",
-                    ["weapon"] = "武器: {0} ({1}/{2})",
-                    ["credits"] = "积分: {0}",
-                    ["playtime"] = "游玩时间: {0}小时{1}分钟",
-                    ["enabled"] = "HUD已启用",
-                    ["disabled"] = "HUD已禁用",
-                    ["position_usage"] = "用法: !hudpos <1-5>",
-                    ["position_help"] = "1=左上 | 2=左下 | 3=右上 | 4=右下 | 5=中间",
-                    ["position_changed"] = "HUD位置已更改",
-                    ["position_invalid"] = "无效的位置值，请使用1-5",
-                    ["language_changed"] = "语言已更改为{0}"
-                }
+                { "hud.enabled", "HUD has been enabled" },
+                { "hud.disabled", "HUD has been disabled" },
+                { "hud.position_usage", "Usage: !hudpos <1-5>" },
+                { "hud.position_help", "1:TopLeft 2:TopRight 3:BottomLeft 4:BottomRight 5:Center" },
+                { "hud.position_changed", "HUD position has been changed" },
+                { "hud.position_invalid", "Invalid position! Use 1-5" },
+                { "hud.language_changed", "Language has been changed" },
+                { "hud.info_name", "Player: {0}" },
+                { "hud.info_kda", "KDA: {0}/{1}/{2}" },
+                { "hud.info_health", "HP: {0}" },
+                { "hud.info_armor", "Armor: {0}" },
+                { "hud.info_team", "Team: {0}" },
+                { "hud.info_money", "Money: ${0}" }
             };
 
-            var enContent = new Dictionary<string, object>
+            var zhPhrases = new Dictionary<string, string>
             {
-                ["hud"] = new Dictionary<string, string>
-                {
-                    ["player_name"] = "Player: {0}",
-                    ["kda"] = "KDA: {0}/{1}/{2}",
-                    ["weapon"] = "Weapon: {0} ({1}/{2})",
-                    ["credits"] = "Credits: {0}",
-                    ["playtime"] = "Playtime: {0}h {1}m",
-                    ["enabled"] = "HUD Enabled",
-                    ["disabled"] = "HUD Disabled",
-                    ["position_usage"] = "Usage: !hudpos <1-5>",
-                    ["position_help"] = "1=TopLeft | 2=BottomLeft | 3=TopRight | 4=BottomRight | 5=Center",
-                    ["position_changed"] = "HUD position changed",
-                    ["position_invalid"] = "Invalid position value, use 1-5",
-                    ["language_changed"] = "Language changed to {0}"
-                }
+                { "hud.enabled", "HUD 已启用" },
+                { "hud.disabled", "HUD 已禁用" },
+                { "hud.position_usage", "用法: !hudpos <1-5>" },
+                { "hud.position_help", "1:左上 2:右上 3:左下 4:右下 5:居中" },
+                { "hud.position_changed", "HUD 位置已更改" },
+                { "hud.position_invalid", "无效的位置! 请使用 1-5" },
+                { "hud.language_changed", "语言已更改" },
+                { "hud.info_name", "玩家: {0}" },
+                { "hud.info_kda", "战绩: {0}/{1}/{2}" },
+                { "hud.info_health", "生命值: {0}" },
+                { "hud.info_armor", "护甲: {0}" },
+                { "hud.info_team", "阵营: {0}" },
+                { "hud.info_money", "金钱: ${0}" }
             };
 
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            };
+            File.WriteAllText(
+                Path.Combine(langDir, "en.json"),
+                JsonSerializer.Serialize(defaultPhrases, new JsonSerializerOptions { WriteIndented = true })
+            );
 
-            try
-            {
-                File.WriteAllText(
-                    Path.Combine(_langDirectory, "zh.json"),
-                    JsonSerializer.Serialize(zhContent, options)
-                );
-
-                File.WriteAllText(
-                    Path.Combine(_langDirectory, "en.json"),
-                    JsonSerializer.Serialize(enContent, options)
-                );
-
-                Console.WriteLine("[InGameHUD] Created default language files");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[InGameHUD] Error creating language files: {ex.Message}");
-                throw;
-            }
+            File.WriteAllText(
+                Path.Combine(langDir, "zh.json"),
+                JsonSerializer.Serialize(zhPhrases, new JsonSerializerOptions { WriteIndented = true })
+            );
         }
 
-        public string GetPhrase(string key, string language = "zh", params object[] args)
+        public string GetPhrase(string key, string language, params object[] args)
         {
-            try
+            if (_phrases.TryGetValue(language, out var langPhrases) &&
+                langPhrases.TryGetValue(key, out var phrase))
             {
-                if (!_translations.ContainsKey(language))
-                {
-                    language = _defaultLanguage;
-                }
-
-                var keys = key.Split('.');
-                var current = _translations[language];
-
-                foreach (var k in keys)
-                {
-                    if (current.TryGetValue(k, out var value))
-                    {
-                        if (value is JsonElement element)
-                        {
-                            switch (element.ValueKind)
-                            {
-                                case JsonValueKind.Object:
-                                    current = element.Deserialize<Dictionary<string, object>>()!;
-                                    continue;
-                                case JsonValueKind.String:
-                                    var format = element.GetString();
-                                    if (format != null)
-                                    {
-                                        try
-                                        {
-                                            return string.Format(format, args);
-                                        }
-                                        catch (FormatException)
-                                        {
-                                            return format;
-                                        }
-                                    }
-                                    break;
-                            }
-                        }
-                        else if (value is Dictionary<string, object> dict)
-                        {
-                            current = dict;
-                            continue;
-                        }
-                        else if (value is string str)
-                        {
-                            try
-                            {
-                                return string.Format(str, args);
-                            }
-                            catch (FormatException)
-                            {
-                                return str;
-                            }
-                        }
-                    }
-                }
-
-                Console.WriteLine($"[InGameHUD] Translation not found for key: {key} in language: {language}");
-                return key;
+                return string.Format(phrase, args);
             }
-            catch (Exception ex)
+
+            if (_phrases.TryGetValue(_defaultLanguage, out var defaultPhrases) &&
+                defaultPhrases.TryGetValue(key, out var defaultPhrase))
             {
-                Console.WriteLine($"[InGameHUD] Error getting phrase for key {key}: {ex.Message}");
-                return key;
+                return string.Format(defaultPhrase, args);
             }
+
+            return key;
         }
     }
 }

@@ -1,16 +1,16 @@
-﻿using CounterStrikeSharp.API;
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
-using CounterStrikeSharp.API.Core.Capabilities;
 using CounterStrikeSharp.API.Modules.Commands;
-using CounterStrikeSharp.API.Modules.Timers;
+using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Utils;
-using CounterStrikeSharp.API.Core.Attributes.Registration;
-using CounterStrikeSharp.API.Modules.Events;
-using CS2_GameHUDAPI;
-using InGameHUD.Managers;
 using InGameHUD.Models;
-using System.Text.Json;
+using InGameHUD.Managers;
+using System.Text;
+using System.Drawing;
+using CounterStrikeSharp.API.Core.Attributes.Registration;
+using CounterStrikeSharp.API.Core.Capabilities;
+using CS2_GameHUDAPI;
 
 namespace InGameHUD
 {
@@ -23,114 +23,290 @@ namespace InGameHUD
         public override string ModuleDescription => "Displays customizable HUD for players";
 
         private static IGameHUDAPI? _api;
-        private DatabaseManager _dbManager = null!;
-        private HUDManager _hudManager = null!;
-        private LanguageManager _langManager = null!;
-        public Config Config { get; set; } = new Config();
-        private Dictionary<string, PlayerData> _playerCache = null!;
+        private const byte MAIN_HUD_CHANNEL = 0;
+        private Dictionary<string, PlayerData> _playerCache = new();
+        private DatabaseManager? _db;
+        private bool _dbConnected = false;
+
+        public Config Config { get; set; } = new();
 
         public void OnConfigParsed(Config config)
         {
             Config = config;
+            Console.WriteLine($"[InGameHUD] Configuration loaded successfully");
         }
 
         public override void Load(bool hotReload)
         {
-            Console.WriteLine($"[InGameHUD] ModuleDirectory: {ModuleDirectory}");
-            Console.WriteLine($"[InGameHUD] ModuleDirectory exists: {Directory.Exists(ModuleDirectory)}");
-            Console.WriteLine($"[InGameHUD] ModuleDirectory full path: {Path.GetFullPath(ModuleDirectory)}");
-
-            if (string.IsNullOrEmpty(ModuleDirectory))
-                throw new InvalidOperationException("ModuleDirectory is not initialized");
-
             try
             {
+                // 初始化 GameHUD API
                 var capability = new PluginCapability<IGameHUDAPI>("gamehud:api");
-                _api = IGameHUDAPI.Capability.Get();
+                _api = capability.Get();
 
                 if (_api == null)
                 {
+                    Console.WriteLine("[InGameHUD] GameHUDAPI not found!");
                     throw new Exception("GameHUDAPI not found!");
                 }
 
-                _playerCache = new Dictionary<string, PlayerData>();
-                _langManager = new LanguageManager(ModuleDirectory, Config.DefaultLanguage);
-                _dbManager = new DatabaseManager(ModuleDirectory, Config);
-                _hudManager = new HUDManager(_api, Config, _langManager);
+                // 初始化数据库
+                _db = new DatabaseManager(Config);
+                try
+                {
+                    var connectionTask = _db.TestConnection();
+                    connectionTask.Wait();
+                    var (success, error) = connectionTask.Result;
+                    if (!success)
+                    {
+                        Console.WriteLine($"[InGameHUD] Database connection failed: {error}");
+                        _dbConnected = false;
+                    }
+                    else
+                    {
+                        Console.WriteLine("[InGameHUD] Database connected successfully!");
+                        _dbConnected = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[InGameHUD] Database initialization error: {ex.Message}");
+                    _dbConnected = false;
+                }
 
+                // 注册命令
                 AddCommand("hud", "Toggle HUD visibility", CommandToggleHUD);
                 AddCommand("hudpos", "Change HUD position (1-5)", CommandHUDPosition);
-                AddCommand("hudlang", "Change HUD language (zh/en)", CommandChangeLanguage);
 
-                RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
+                // 注册事件
+                RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnect);
                 RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
 
-                AddTimer(0.2f, () =>
+                // 注册Tick更新
+                RegisterListener<Listeners.OnTick>(() =>
                 {
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (player == null || !player.IsValid || player.IsBot) continue;
+
                         var steamId = player.SteamID.ToString();
                         if (_playerCache.TryGetValue(steamId, out var playerData) && playerData.HUDEnabled)
                         {
-                            _hudManager.UpdateHUD(player, playerData);
+                            UpdatePlayerHUDSync(player);
                         }
                     }
-                }, TimerFlags.REPEAT);
+                });
 
-                if (hotReload)
-                {
-                    ReloadAllPlayersHUD();
-                }
+                Console.WriteLine("[InGameHUD] Plugin loaded successfully!");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error initializing plugin: {ex.Message}");
+                Console.WriteLine($"[InGameHUD] Error loading plugin: {ex.Message}");
                 throw;
             }
         }
 
-        private async void ReloadAllPlayersHUD()
+        private void UpdatePlayerHUDSync(CCSPlayerController player)
         {
-            foreach (var player in Utilities.GetPlayers().Where(p => p != null && p.IsValid && !p.IsBot))
+            if (player == null || !player.IsValid) return;
+
+            var steamId = player.SteamID.ToString();
+            if (!_playerCache.TryGetValue(steamId, out var playerData)) return;
+
+            try
+            {
+                // 更新自定义数据
+                if (_dbConnected && _db != null)
+                {
+                    var customDataTask = _db.GetCustomData(steamId);
+                    customDataTask.Wait();
+                    playerData.CustomData = customDataTask.Result;
+                }
+
+                var (position, justify) = GetHUDPosition(playerData.HUDPosition);
+
+                // 设置HUD参数
+                _api?.Native_GameHUD_SetParams(
+                    player,
+                    MAIN_HUD_CHANNEL,
+                    position,
+                    Color.FromName(Config.TextColor),
+                    Config.FontSize,
+                    Config.FontName,
+                    Config.Scale,
+                    justify,
+                    PointWorldTextJustifyVertical_t.POINT_WORLD_TEXT_JUSTIFY_VERTICAL_CENTER,
+                    PointWorldTextReorientMode_t.POINT_WORLD_TEXT_REORIENT_NONE,
+                    Config.BackgroundScale,
+                    Config.BackgroundOpacity
+                );
+
+                // 构建HUD内容
+                var hudBuilder = new StringBuilder();
+
+                // 玩家名称
+                hudBuilder.AppendLine($"玩家: {player.PlayerName}");
+
+                // KDA统计
+                if (Config.ShowKDA && player.ActionTrackingServices?.MatchStats != null)
+                {
+                    var stats = player.ActionTrackingServices.MatchStats;
+                    hudBuilder.AppendLine($"战绩: {stats.Kills}/{stats.Deaths}/{stats.Assists}");
+                }
+
+                // 生命值
+                if (player.PlayerPawn != null && player.PlayerPawn.Value != null)
+                {
+                    hudBuilder.AppendLine($"生命值: {player.PlayerPawn.Value.Health}");
+                }
+
+                // 阵营显示
+                string teamName = "观察者";
+                if (player.TeamNum == 2)
+                {
+                    teamName = "恐怖分子";
+                }
+                else if (player.TeamNum == 3)
+                {
+                    teamName = "反恐精英";
+                }
+                hudBuilder.AppendLine($"阵营: {teamName}");
+
+                // 添加自定义数据
+                if (playerData.CustomData.ContainsKey("credits"))
+                {
+                    hudBuilder.AppendLine($"积分: {playerData.CustomData["credits"]}");
+                }
+
+                if (playerData.CustomData.ContainsKey("playtime"))
+                {
+                    var playtime = int.Parse(playerData.CustomData["playtime"]);
+                    var hours = playtime / 60;
+                    var minutes = playtime % 60;
+                    hudBuilder.AppendLine($"游玩时长: {hours}小时{minutes}分钟");
+                }
+
+                // 显示HUD
+                _api?.Native_GameHUD_ShowPermanent(player, MAIN_HUD_CHANNEL, hudBuilder.ToString());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[InGameHUD] Error updating HUD for {player.PlayerName}: {ex.Message}");
+            }
+        }
+
+        private void LoadPlayerSettingsSync(CCSPlayerController player)
+        {
+            if (!_dbConnected || _db == null || player == null || !player.IsValid) return;
+
+            try
             {
                 var steamId = player.SteamID.ToString();
-                var playerData = await _dbManager.LoadPlayerData(steamId);
-                _playerCache[steamId] = playerData;
-                if (playerData.HUDEnabled)
+                var settingsTask = _db.LoadPlayerSettings(steamId);
+                settingsTask.Wait();
+                _playerCache[steamId] = settingsTask.Result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[InGameHUD] Error loading settings for {player.PlayerName}: {ex.Message}");
+                // 如果加载失败，使用默认设置
+                if (player != null && player.IsValid)
                 {
-                    _hudManager.EnableHUD(player, playerData);
+                    _playerCache[player.SteamID.ToString()] = new PlayerData(player.SteamID.ToString());
                 }
             }
         }
 
+        private void SavePlayerSettingsSync(CCSPlayerController player)
+        {
+            if (!_dbConnected || _db == null || player == null || !player.IsValid) return;
+
+            try
+            {
+                var steamId = player.SteamID.ToString();
+                if (_playerCache.TryGetValue(steamId, out var playerData))
+                {
+                    _db.SavePlayerSettings(playerData).Wait();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[InGameHUD] Error saving settings for {player.PlayerName}: {ex.Message}");
+            }
+        }
+
+        private void CommandToggleHUD(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player == null || !player.IsValid) return;
+
+            var steamId = player.SteamID.ToString();
+            if (!_playerCache.TryGetValue(steamId, out var playerData))
+            {
+                playerData = new PlayerData(steamId);
+                _playerCache[steamId] = playerData;
+            }
+
+            playerData.HUDEnabled = !playerData.HUDEnabled;
+
+            if (playerData.HUDEnabled)
+            {
+                UpdatePlayerHUDSync(player);
+                player.PrintToChat($" {ChatColors.Green}HUD已启用");
+            }
+            else
+            {
+                _api?.Native_GameHUD_Remove(player, MAIN_HUD_CHANNEL);
+                player.PrintToChat($" {ChatColors.Red}HUD已禁用");
+            }
+
+            SavePlayerSettingsSync(player);
+        }
+
+        private void CommandHUDPosition(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player == null || !player.IsValid) return;
+
+            if (command.ArgCount != 1)
+            {
+                player.PrintToChat($" {ChatColors.Green}用法: !hudpos <1-5>");
+                player.PrintToChat($" {ChatColors.Green}1:左上 2:右上 3:左下 4:右下 5:居中");
+                return;
+            }
+
+            var steamId = player.SteamID.ToString();
+            if (!_playerCache.TryGetValue(steamId, out var playerData))
+            {
+                playerData = new PlayerData(steamId);
+                _playerCache[steamId] = playerData;
+            }
+
+            if (int.TryParse(command.ArgByIndex(1), out int pos) && pos >= 1 && pos <= 5)
+            {
+                playerData.HUDPosition = (HUDPosition)(pos - 1);
+
+                if (playerData.HUDEnabled)
+                {
+                    _api?.Native_GameHUD_Remove(player, MAIN_HUD_CHANNEL);
+                    UpdatePlayerHUDSync(player);
+                }
+
+                player.PrintToChat($" {ChatColors.Green}HUD位置已更改");
+                SavePlayerSettingsSync(player);
+            }
+            else
+            {
+                player.PrintToChat($" {ChatColors.Red}无效的位置! 请使用 1-5");
+            }
+        }
+
         [GameEventHandler]
-        public HookResult OnPlayerConnectFull(EventPlayerConnectFull @event, GameEventInfo info)
+        public HookResult OnPlayerConnect(EventPlayerConnectFull @event, GameEventInfo info)
         {
             var player = @event.Userid;
             if (player == null || !player.IsValid || player.IsBot)
                 return HookResult.Continue;
 
-            var steamId = player.SteamID.ToString();
-
-            Task.Run(async () =>
-            {
-                try
-                {
-                    var playerData = await _dbManager.LoadPlayerData(steamId);
-                    _playerCache[steamId] = playerData;
-
-                    if (playerData.HUDEnabled)
-                    {
-                        Server.NextFrame(() => _hudManager.EnableHUD(player, playerData));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[InGameHUD] Error loading player data for {steamId}: {ex.Message}");
-                }
-            });
-
+            LoadPlayerSettingsSync(player);
             return HookResult.Continue;
         }
 
@@ -142,121 +318,27 @@ namespace InGameHUD
                 return HookResult.Continue;
 
             var steamId = player.SteamID.ToString();
-            if (_playerCache.TryGetValue(steamId, out var playerData))
+            if (_playerCache.ContainsKey(steamId))
             {
-                _hudManager.DisableHUD(player);
-                Task.Run(async () =>
-                {
-                    try
-                    {
-                        await _dbManager.SavePlayerData(steamId, playerData);
-                        _playerCache.Remove(steamId);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"[InGameHUD] Error saving player data for {steamId}: {ex.Message}");
-                    }
-                });
+                _api?.Native_GameHUD_Remove(player, MAIN_HUD_CHANNEL);
+                SavePlayerSettingsSync(player);
+                _playerCache.Remove(steamId);
             }
 
             return HookResult.Continue;
         }
 
-        private void CommandToggleHUD(CCSPlayerController? player, CommandInfo command)
+        private (Vector, PointWorldTextJustifyHorizontal_t) GetHUDPosition(HUDPosition position)
         {
-            if (player == null || !player.IsValid) return;
-
-            var steamId = player.SteamID.ToString();
-            if (_playerCache.TryGetValue(steamId, out var playerData))
+            return position switch
             {
-                playerData.HUDEnabled = !playerData.HUDEnabled;
-
-                if (playerData.HUDEnabled)
-                {
-                    _hudManager.EnableHUD(player, playerData);
-                    player.PrintToChat($" {ChatColors.Green}{_langManager.GetPhrase("hud.enabled", playerData.Language)}");
-                }
-                else
-                {
-                    _hudManager.DisableHUD(player);
-                    player.PrintToChat($" {ChatColors.Red}{_langManager.GetPhrase("hud.disabled", playerData.Language)}");
-                }
-
-                Task.Run(async () =>
-                {
-                    await _dbManager.SavePlayerData(steamId, playerData);
-                });
-            }
-        }
-
-        private void CommandHUDPosition(CCSPlayerController? player, CommandInfo command)
-        {
-            if (player == null || !player.IsValid) return;
-
-            var steamId = player.SteamID.ToString();
-            if (!_playerCache.TryGetValue(steamId, out var playerData)) return;
-
-            if (command.ArgCount != 1)
-            {
-                player.PrintToChat($" {ChatColors.Green}{_langManager.GetPhrase("hud.position_usage", playerData.Language)}");
-                player.PrintToChat($" {ChatColors.Green}{_langManager.GetPhrase("hud.position_help", playerData.Language)}");
-                return;
-            }
-
-            if (int.TryParse(command.ArgByIndex(1), out int pos) && pos >= 1 && pos <= 5)
-            {
-                _hudManager.DisableHUD(player);
-
-                playerData.HUDPosition = (HUDPosition)(pos - 1);
-
-                if (playerData.HUDEnabled)
-                {
-                    _hudManager.EnableHUD(player, playerData);
-                }
-
-                Task.Run(async () =>
-                {
-                    await _dbManager.SavePlayerData(steamId, playerData);
-                });
-
-                player.PrintToChat($" {ChatColors.Green}{_langManager.GetPhrase("hud.position_changed", playerData.Language)}");
-            }
-            else
-            {
-                player.PrintToChat($" {ChatColors.Red}{_langManager.GetPhrase("hud.position_invalid", playerData.Language)}");
-            }
-        }
-
-        private void CommandChangeLanguage(CCSPlayerController? player, CommandInfo command)
-        {
-            if (player == null || !player.IsValid) return;
-
-            var steamId = player.SteamID.ToString();
-            if (!_playerCache.TryGetValue(steamId, out var playerData)) return;
-
-            if (command.ArgCount != 1)
-            {
-                player.PrintToChat($" {ChatColors.Green}Usage: !hudlang <zh/en>");
-                return;
-            }
-
-            var language = command.ArgByIndex(1).ToLower();
-            if (language != "zh" && language != "en")
-            {
-                player.PrintToChat($" {ChatColors.Red}Supported languages: zh, en");
-                return;
-            }
-
-            playerData.Language = language;
-            if (playerData.HUDEnabled)
-            {
-                _hudManager.UpdateHUD(player, playerData);
-            }
-
-            Task.Run(async () =>
-            {
-                await _dbManager.SavePlayerData(steamId, playerData);
-            });
+                HUDPosition.TopLeft => (new Vector(25, 90, 70), PointWorldTextJustifyHorizontal_t.POINT_WORLD_TEXT_JUSTIFY_HORIZONTAL_LEFT),
+                HUDPosition.TopRight => (new Vector(65, 10, 70), PointWorldTextJustifyHorizontal_t.POINT_WORLD_TEXT_JUSTIFY_HORIZONTAL_RIGHT),
+                HUDPosition.BottomLeft => (new Vector(65, 90, 70), PointWorldTextJustifyHorizontal_t.POINT_WORLD_TEXT_JUSTIFY_HORIZONTAL_LEFT),
+                HUDPosition.BottomRight => (new Vector(25, 10, 70), PointWorldTextJustifyHorizontal_t.POINT_WORLD_TEXT_JUSTIFY_HORIZONTAL_RIGHT),
+                HUDPosition.Center => (new Vector(50, 50, 70), PointWorldTextJustifyHorizontal_t.POINT_WORLD_TEXT_JUSTIFY_HORIZONTAL_CENTER),
+                _ => (new Vector(65, 10, 70), PointWorldTextJustifyHorizontal_t.POINT_WORLD_TEXT_JUSTIFY_HORIZONTAL_RIGHT)
+            };
         }
 
         public override void Unload(bool hotReload)
@@ -265,14 +347,20 @@ namespace InGameHUD
             {
                 foreach (var player in Utilities.GetPlayers())
                 {
-                    _hudManager.DisableHUD(player);  
+                    if (player != null && player.IsValid)
+                    {
+                        _api?.Native_GameHUD_Remove(player, MAIN_HUD_CHANNEL);
+                    }
                 }
-                _playerCache?.Clear();
+
+                _playerCache.Clear();
                 _api = null;
+                _db = null;
+                Console.WriteLine("[InGameHUD] Plugin unloaded successfully!");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[InGameHUD] Unload error: {ex.Message}");
+                Console.WriteLine($"[InGameHUD] Error during unload: {ex.Message}");
             }
         }
     }
