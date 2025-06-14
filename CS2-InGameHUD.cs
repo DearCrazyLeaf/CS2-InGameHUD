@@ -186,11 +186,12 @@ namespace InGameHUD
                     var minutes = (playtime % 3600) / 60;
                     hudBuilder.AppendLine($"游玩时长: {hours}小时{minutes}分钟");
                 }
-                    hudBuilder.AppendLine($"上次签到：开发中");
+                    hudBuilder.AppendLine($"上次签到: 开发中");
                     hudBuilder.AppendLine($"===================");
+                    hudBuilder.AppendLine($"!hud开关面板");
                     hudBuilder.AppendLine($"!help查看帮助");
                     hudBuilder.AppendLine($"!store打开商店");
-                    hudBuilder.AppendLine($"官方网站：hlymcn.cn");
+                    hudBuilder.AppendLine($"官方网站: hlymcn.cn");
 
                 // 显示HUD
                 _api?.Native_GameHUD_ShowPermanent(player, MAIN_HUD_CHANNEL, hudBuilder.ToString());
