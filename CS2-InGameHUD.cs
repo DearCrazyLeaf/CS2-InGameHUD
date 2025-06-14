@@ -155,7 +155,7 @@ namespace InGameHUD
                 }
 
                 // 生命值
-                if (player.PlayerPawn != null && player.PlayerPawn.Value != null)
+                if (Config.ShowHealth && player.PlayerPawn != null && player.PlayerPawn.Value != null)
                 {
                     hudBuilder.AppendLine($"生命值: {player.PlayerPawn.Value.Health}");
                 }

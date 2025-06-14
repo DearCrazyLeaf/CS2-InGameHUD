@@ -28,8 +28,8 @@ namespace InGameHUD.Models
         [JsonPropertyName("show_kda")]
         public bool ShowKDA { get; set; } = true;
 
-        [JsonPropertyName("show_weapon")]
-        public bool ShowWeapon { get; set; } = true;
+        [JsonPropertyName("show_health")]
+        public bool ShowHealth { get; set; } = true;
 
         private string _textColorName = "White";
 

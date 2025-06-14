@@ -125,33 +125,87 @@ namespace InGameHUD.Managers
                 using var connection = new MySqlConnection(_connectionString);
                 await connection.OpenAsync();
 
+                // 检查数据库连接状态
+                Console.WriteLine($"[InGameHUD] Database connection state: {connection.State}");
+                Console.WriteLine($"[InGameHUD] Using database: {_config.MySqlConnection.Database}");
+
                 if (_config.CustomData.Credits.Enabled)
                 {
-                    var creditsCommand = connection.CreateCommand();
-                    creditsCommand.CommandText = $"SELECT {_config.CustomData.Credits.ColumnName} " +
-                                               $"FROM {_config.CustomData.Credits.TableName} " +
-                                               $"WHERE steam_id = @steamId";
-                    creditsCommand.Parameters.AddWithValue("@steamId", steamId);
-
-                    var creditsResult = await creditsCommand.ExecuteScalarAsync();
-                    if (creditsResult != null && creditsResult != DBNull.Value)
+                    try
                     {
-                        result["credits"] = creditsResult.ToString() ?? "0";
+                        var creditsCommand = connection.CreateCommand();
+                        var creditsTable = _config.CustomData.Credits.TableName;
+                        var creditsColumn = _config.CustomData.Credits.ColumnName;
+
+                        // 使用完全限定的表名
+                        string creditsQuery = $@"
+                    SELECT `{creditsColumn}` 
+                    FROM `{_config.MySqlConnection.Database}`.`{creditsTable}` 
+                    WHERE steam_id = @steamId;";
+
+                        creditsCommand.CommandText = creditsQuery;
+                        creditsCommand.Parameters.AddWithValue("@steamId", steamId);
+
+                        Console.WriteLine($"[InGameHUD] Executing credits query for player {steamId}:");
+                        Console.WriteLine($"[InGameHUD] Table: {creditsTable}, Column: {creditsColumn}");
+                        Console.WriteLine($"[InGameHUD] Query: {creditsQuery}");
+
+                        var creditsResult = await creditsCommand.ExecuteScalarAsync();
+
+                        if (creditsResult != null && creditsResult != DBNull.Value)
+                        {
+                            result["credits"] = creditsResult.ToString() ?? "0";
+                            Console.WriteLine($"[InGameHUD] Found credits value: {result["credits"]}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[InGameHUD] No credits found for player {steamId}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[InGameHUD] Error getting credits: {ex.Message}");
+                        Console.WriteLine($"[InGameHUD] Credits error details: {ex}");
                     }
                 }
 
                 if (_config.CustomData.Playtime.Enabled)
                 {
-                    var playtimeCommand = connection.CreateCommand();
-                    playtimeCommand.CommandText = $"SELECT {_config.CustomData.Playtime.ColumnName} " +
-                                                $"FROM {_config.CustomData.Playtime.TableName} " +
-                                                $"WHERE steam_id = @steamId";
-                    playtimeCommand.Parameters.AddWithValue("@steamId", steamId);
-
-                    var playtimeResult = await playtimeCommand.ExecuteScalarAsync();
-                    if (playtimeResult != null && playtimeResult != DBNull.Value)
+                    try
                     {
-                        result["playtime"] = playtimeResult.ToString() ?? "0";
+                        var playtimeCommand = connection.CreateCommand();
+                        var playtimeTable = _config.CustomData.Playtime.TableName;
+                        var playtimeColumn = _config.CustomData.Playtime.ColumnName;
+
+                        // 使用完全限定的表名
+                        string playtimeQuery = $@"
+                    SELECT `{playtimeColumn}` 
+                    FROM `{_config.MySqlConnection.Database}`.`{playtimeTable}` 
+                    WHERE steam_id = @steamId;";
+
+                        playtimeCommand.CommandText = playtimeQuery;
+                        playtimeCommand.Parameters.AddWithValue("@steamId", steamId);
+
+                        Console.WriteLine($"[InGameHUD] Executing playtime query for player {steamId}:");
+                        Console.WriteLine($"[InGameHUD] Table: {playtimeTable}, Column: {playtimeColumn}");
+                        Console.WriteLine($"[InGameHUD] Query: {playtimeQuery}");
+
+                        var playtimeResult = await playtimeCommand.ExecuteScalarAsync();
+
+                        if (playtimeResult != null && playtimeResult != DBNull.Value)
+                        {
+                            result["playtime"] = playtimeResult.ToString() ?? "0";
+                            Console.WriteLine($"[InGameHUD] Found playtime value: {result["playtime"]}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[InGameHUD] No playtime found for player {steamId}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[InGameHUD] Error getting playtime: {ex.Message}");
+                        Console.WriteLine($"[InGameHUD] Playtime error details: {ex}");
                     }
                 }
 
@@ -159,7 +213,10 @@ namespace InGameHUD.Managers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[InGameHUD] Error getting custom data: {ex.Message}");
+                Console.WriteLine($"[InGameHUD] Error in GetCustomData: {ex.Message}");
+                Console.WriteLine($"[InGameHUD] Database: {_config.MySqlConnection.Database}");
+                Console.WriteLine($"[InGameHUD] Connection string: {_connectionString}");
+                Console.WriteLine($"[InGameHUD] Stack trace: {ex.StackTrace}");
                 return result;
             }
         }
