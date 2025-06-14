@@ -26,7 +26,7 @@ namespace InGameHUD
         private DatabaseManager _dbManager = null!;
         private HUDManager _hudManager = null!;
         private LanguageManager _langManager = null!;
-        public Config Config { get; set; } = new Config(); // 修改为直接初始化
+        public Config Config { get; set; } = new Config();
         private Dictionary<string, PlayerData> _playerCache = null!;
 
         public void OnConfigParsed(Config config)
@@ -45,7 +45,7 @@ namespace InGameHUD
 
             try
             {
-                // 初始化 GameHUD API
+                // 使用 Capability 系统获取 API
                 var capability = new PluginCapability<IGameHUDAPI>("gamehud:api");
                 _api = IGameHUDAPI.Capability.Get();
 
@@ -56,9 +56,9 @@ namespace InGameHUD
 
                 _playerCache = new Dictionary<string, PlayerData>();
 
-                // 初始化管理器（按正确顺序初始化）
+                // 初始化管理器
                 _langManager = new LanguageManager(ModuleDirectory, Config.DefaultLanguage);
-                _dbManager = new DatabaseManager(ModuleDirectory, Config);  // 只初始化一次
+                _dbManager = new DatabaseManager(ModuleDirectory, Config);
                 _hudManager = new HUDManager(_api, Config, _langManager);
 
                 // 注册命令
@@ -82,7 +82,7 @@ namespace InGameHUD
             catch (Exception ex)
             {
                 Console.WriteLine($"Error initializing plugin: {ex.Message}");
-                throw; // 重新抛出异常以确保插件加载失败被正确处理
+                throw;
             }
         }
 
