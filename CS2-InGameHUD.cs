@@ -145,37 +145,37 @@ namespace InGameHUD
                 var hudBuilder = new StringBuilder();
 
                 // 玩家名称
-                hudBuilder.AppendLine($"玩家: {player.PlayerName}");
+                hudBuilder.AppendLine($"名称: {player.PlayerName}");
 
                 // KDA统计
                 if (Config.ShowKDA && player.ActionTrackingServices?.MatchStats != null)
                 {
                     var stats = player.ActionTrackingServices.MatchStats;
-                    hudBuilder.AppendLine($"战绩: {stats.Kills}/{stats.Deaths}/{stats.Assists}");
+                    hudBuilder.AppendLine($"KDR: {stats.Kills}/{stats.Deaths}/{stats.Assists}");
                 }
 
                 // 生命值
                 if (Config.ShowHealth && player.PlayerPawn != null && player.PlayerPawn.Value != null)
                 {
-                    hudBuilder.AppendLine($"生命值: {player.PlayerPawn.Value.Health}");
+                    hudBuilder.AppendLine($"HP: {player.PlayerPawn.Value.Health}");
                 }
 
                 // 阵营显示
-                string teamName = "观察者";
+                string teamName = "SPEC";
                 if (player.TeamNum == 2)
                 {
-                    teamName = "恐怖分子";
+                    teamName = "T";
                 }
                 else if (player.TeamNum == 3)
                 {
-                    teamName = "反恐精英";
+                    teamName = "CT";
                 }
                 hudBuilder.AppendLine($"阵营: {teamName}");
 
                 // 添加自定义数据
                 if (playerData.CustomData.ContainsKey("credits"))
                 {
-                    hudBuilder.AppendLine($"积分: {playerData.CustomData["credits"]}");
+                    hudBuilder.AppendLine($"积分(重新加入刷新): {playerData.CustomData["credits"]}");
                 }
 
                 if (playerData.CustomData.ContainsKey("playtime"))
@@ -183,7 +183,7 @@ namespace InGameHUD
                     var playtime = int.Parse(playerData.CustomData["playtime"]);
                     var hours = playtime / 3600;
                     var minutes = (playtime % 3600) / 60;
-                    hudBuilder.AppendLine($"游玩时长: {hours}小时{minutes}分钟");
+                    hudBuilder.AppendLine($"游玩时长(每回合刷新): {hours}小时{minutes}分钟");
                 }
 
                 // 显示HUD
