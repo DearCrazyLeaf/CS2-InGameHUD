@@ -176,7 +176,7 @@ namespace InGameHUD
                 // 添加自定义数据
                 if (playerData.CustomData.ContainsKey("credits"))
                 {
-                    hudBuilder.AppendLine($"积分: {playerData.CustomData["credits"]}");
+                    hudBuilder.AppendLine($"积分(重进刷新): {playerData.CustomData["credits"]}");
                 }
 
                 if (playerData.CustomData.ContainsKey("playtime"))
