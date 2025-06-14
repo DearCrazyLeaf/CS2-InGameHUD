@@ -13,6 +13,8 @@ namespace InGameHUD.Managers
         private readonly Config _config;
         private readonly LanguageManager _langManager;
         private const byte MAIN_HUD_CHANNEL = 1;
+        // 添加字典来跟踪每个玩家的HUD状态
+        private readonly Dictionary<string, bool> _activeHuds = new();
 
         public HUDManager(IGameHUDAPI api, Config config, LanguageManager langManager)
         {
@@ -24,7 +26,12 @@ namespace InGameHUD.Managers
         public void UpdateHUD(CCSPlayerController player, PlayerData playerData)
         {
             if (!playerData.HUDEnabled || !player.IsValid || player.PlayerPawn?.Value == null)
+            {
+                DisableHUD(player);
                 return;
+            }
+
+            var steamId = player.SteamID.ToString();
 
             try
             {
@@ -68,43 +75,80 @@ namespace InGameHUD.Managers
                         playerData.Credits));
                 }
 
+                if (_config.CustomData.Playtime.Enabled && playerData.Playtime != TimeSpan.Zero)
+                {
+                    hudBuilder.AppendLine(_langManager.GetPhrase("hud.playtime", lang,
+                        (int)playerData.Playtime.TotalHours,
+                        playerData.Playtime.Minutes));
+                }
+
                 var position = GetHUDPosition(playerData.HUDPosition);
 
-                // 参考 KillShotHUD 的参数设置
-                _api.Native_GameHUD_SetParams(
-                    player,
-                    MAIN_HUD_CHANNEL,
-                    position,
-                    _config.TextColor,
-                    50,  // 更大的字体大小
-                    "Arial Bold",
-                    0.07f,  // 更大的缩放比例
-                    PointWorldTextJustifyHorizontal_t.POINT_WORLD_TEXT_JUSTIFY_HORIZONTAL_LEFT,
-                    PointWorldTextJustifyVertical_t.POINT_WORLD_TEXT_JUSTIFY_VERTICAL_TOP,
-                    PointWorldTextReorientMode_t.POINT_WORLD_TEXT_REORIENT_NONE,
-                    0.0f,
-                    0.0f
-                );
+                // 如果HUD不存在或位置改变，重新创建
+                if (!_activeHuds.ContainsKey(steamId))
+                {
+                    // 设置HUD参数
+                    _api.Native_GameHUD_SetParams(
+                        player,
+                        MAIN_HUD_CHANNEL,
+                        position,
+                        _config.TextColor,
+                        50,
+                        "Arial Bold",
+                        0.07f,
+                        PointWorldTextJustifyHorizontal_t.POINT_WORLD_TEXT_JUSTIFY_HORIZONTAL_LEFT,
+                        PointWorldTextJustifyVertical_t.POINT_WORLD_TEXT_JUSTIFY_VERTICAL_TOP,
+                        PointWorldTextReorientMode_t.POINT_WORLD_TEXT_REORIENT_NONE,
+                        0.0f,
+                        0.0f
+                    );
+                    _activeHuds[steamId] = true;
+                }
 
-                // 使用 ShowPermanent 保持永久显示
+                // 更新HUD内容
                 _api.Native_GameHUD_ShowPermanent(player, MAIN_HUD_CHANNEL, hudBuilder.ToString());
+                Console.WriteLine($"[InGameHUD] Updated HUD for player {player.PlayerName}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error updating HUD for player {player.PlayerName}: {ex.Message}");
+                Console.WriteLine($"[InGameHUD] Error updating HUD for player {player.PlayerName}: {ex.Message}");
+                DisableHUD(player);
             }
         }
 
         public void EnableHUD(CCSPlayerController player, PlayerData playerData)
         {
-            playerData.HUDEnabled = true;
-            UpdateHUD(player, playerData);
+            if (!player.IsValid) return;
+
+            var steamId = player.SteamID.ToString();
+            try
+            {
+                DisableHUD(player); // 先清除可能存在的HUD
+                playerData.HUDEnabled = true;
+                UpdateHUD(player, playerData);
+                Console.WriteLine($"[InGameHUD] Enabled HUD for player {player.PlayerName}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[InGameHUD] Error enabling HUD for player {player.PlayerName}: {ex.Message}");
+            }
         }
 
         public void DisableHUD(CCSPlayerController player)
         {
             if (!player.IsValid) return;
-            _api.Native_GameHUD_Remove(player, MAIN_HUD_CHANNEL);
+
+            var steamId = player.SteamID.ToString();
+            try
+            {
+                _api.Native_GameHUD_Remove(player, MAIN_HUD_CHANNEL);
+                _activeHuds.Remove(steamId);
+                Console.WriteLine($"[InGameHUD] Disabled HUD for player {player.PlayerName}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[InGameHUD] Error disabling HUD for player {player.PlayerName}: {ex.Message}");
+            }
         }
 
         private Vector GetHUDPosition(HUDPosition position)

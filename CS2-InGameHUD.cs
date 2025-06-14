@@ -132,11 +132,12 @@ namespace InGameHUD
             var steamId = player.SteamID.ToString();
             if (_playerCache.TryGetValue(steamId, out var playerData))
             {
+                _hudManager.DisableHUD(player);
                 Task.Run(async () =>
                 {
-                    await _dbManager.SavePlayerData(steamId, playerData);
+                    await SavePlayerDataWithRetry(steamId, playerData);
+                    _playerCache.Remove(steamId);
                 });
-                _playerCache.Remove(steamId);
             }
 
             return HookResult.Continue;
@@ -157,7 +158,7 @@ namespace InGameHUD
                 var steamId = player.SteamID.ToString();
                 if (_playerCache.TryGetValue(steamId, out var playerData) && playerData.HUDEnabled)
                 {
-                    _hudManager.UpdateHUD(player, playerData);
+                    Server.NextFrame(() => _hudManager.UpdateHUD(player, playerData));
                 }
             }
         }
@@ -174,6 +175,8 @@ namespace InGameHUD
                 if (playerData.HUDEnabled)
                 {
                     _hudManager.EnableHUD(player, playerData);
+                    // 立即更新一次 HUD
+                    Server.NextFrame(() => _hudManager.UpdateHUD(player, playerData));
                     player.PrintToChat($" {ChatColors.Green}{_langManager.GetPhrase("hud.enabled", playerData.Language)}");
                 }
                 else
@@ -182,10 +185,8 @@ namespace InGameHUD
                     player.PrintToChat($" {ChatColors.Red}{_langManager.GetPhrase("hud.disabled", playerData.Language)}");
                 }
 
-                Task.Run(async () =>
-                {
-                    await _dbManager.SavePlayerData(steamId, playerData);
-                });
+                // 立即保存数据
+                _dbManager.SavePlayerData(steamId, playerData).Wait();
             }
         }
 
@@ -208,13 +209,13 @@ namespace InGameHUD
                 playerData.HUDPosition = (HUDPosition)(pos - 1);
                 if (playerData.HUDEnabled)
                 {
-                    _hudManager.UpdateHUD(player, playerData);
+                    _hudManager.DisableHUD(player);  // 先禁用当前HUD
+                    _hudManager.EnableHUD(player, playerData);  // 在新位置重新启用
+                    Server.NextFrame(() => _hudManager.UpdateHUD(player, playerData));
                 }
 
-                Task.Run(async () =>
-                {
-                    await _dbManager.SavePlayerData(steamId, playerData);
-                });
+                // 立即保存数据
+                _dbManager.SavePlayerData(steamId, playerData).Wait();
             }
         }
 
@@ -248,6 +249,28 @@ namespace InGameHUD
             {
                 await _dbManager.SavePlayerData(steamId, playerData);
             });
+        }
+
+        private async Task SavePlayerDataWithRetry(string steamId, PlayerData playerData, int maxRetries = 3)
+        {
+            for (int i = 0; i < maxRetries; i++)
+            {
+                try
+                {
+                    playerData.UpdateLastUpdated();
+                    await _dbManager.SavePlayerData(steamId, playerData);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[InGameHUD] Attempt {i + 1} failed to save player data for {steamId}: {ex.Message}");
+                    if (i == maxRetries - 1)
+                    {
+                        Console.WriteLine($"[InGameHUD] Failed to save player data after {maxRetries} attempts");
+                    }
+                    await Task.Delay(100 * (i + 1)); // 递增延迟重试
+                }
+            }
         }
     }
 }
