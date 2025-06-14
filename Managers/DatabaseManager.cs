@@ -126,8 +126,8 @@ namespace InGameHUD.Managers
                 await connection.OpenAsync();
 
                 // 检查数据库连接状态
-                Console.WriteLine($"[InGameHUD] Database connection state: {connection.State}");
-                Console.WriteLine($"[InGameHUD] Using database: {_config.MySqlConnection.Database}");
+                //Console.WriteLine($"[InGameHUD] Database connection state: {connection.State}");
+                //Console.WriteLine($"[InGameHUD] Using database: {_config.MySqlConnection.Database}");
 
                 if (_config.CustomData.Credits.Enabled)
                 {
@@ -146,26 +146,26 @@ namespace InGameHUD.Managers
                         creditsCommand.CommandText = creditsQuery;
                         creditsCommand.Parameters.AddWithValue("@steamId", steamId);
 
-                        Console.WriteLine($"[InGameHUD] Executing credits query for player {steamId}:");
-                        Console.WriteLine($"[InGameHUD] Table: {creditsTable}, Column: {creditsColumn}");
-                        Console.WriteLine($"[InGameHUD] Query: {creditsQuery}");
+                        //Console.WriteLine($"[InGameHUD] Executing credits query for player {steamId}:");
+                        //Console.WriteLine($"[InGameHUD] Table: {creditsTable}, Column: {creditsColumn}");
+                        //Console.WriteLine($"[InGameHUD] Query: {creditsQuery}");
 
                         var creditsResult = await creditsCommand.ExecuteScalarAsync();
 
                         if (creditsResult != null && creditsResult != DBNull.Value)
                         {
                             result["credits"] = creditsResult.ToString() ?? "0";
-                            Console.WriteLine($"[InGameHUD] Found credits value: {result["credits"]}");
+                            //Console.WriteLine($"[InGameHUD] Found credits value: {result["credits"]}");
                         }
                         else
                         {
-                            Console.WriteLine($"[InGameHUD] No credits found for player {steamId}");
+                            //Console.WriteLine($"[InGameHUD] No credits found for player {steamId}");
                         }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[InGameHUD] Error getting credits: {ex.Message}");
-                        Console.WriteLine($"[InGameHUD] Credits error details: {ex}");
+                        //Console.WriteLine($"[InGameHUD] Error getting credits: {ex.Message}");
+                        //Console.WriteLine($"[InGameHUD] Credits error details: {ex}");
                     }
                 }
 
@@ -186,26 +186,26 @@ namespace InGameHUD.Managers
                         playtimeCommand.CommandText = playtimeQuery;
                         playtimeCommand.Parameters.AddWithValue("@steamId", steamId);
 
-                        Console.WriteLine($"[InGameHUD] Executing playtime query for player {steamId}:");
-                        Console.WriteLine($"[InGameHUD] Table: {playtimeTable}, Column: {playtimeColumn}");
-                        Console.WriteLine($"[InGameHUD] Query: {playtimeQuery}");
+                        //Console.WriteLine($"[InGameHUD] Executing playtime query for player {steamId}:");
+                        //Console.WriteLine($"[InGameHUD] Table: {playtimeTable}, Column: {playtimeColumn}");
+                        //Console.WriteLine($"[InGameHUD] Query: {playtimeQuery}");
 
                         var playtimeResult = await playtimeCommand.ExecuteScalarAsync();
 
                         if (playtimeResult != null && playtimeResult != DBNull.Value)
                         {
                             result["playtime"] = playtimeResult.ToString() ?? "0";
-                            Console.WriteLine($"[InGameHUD] Found playtime value: {result["playtime"]}");
+                            //Console.WriteLine($"[InGameHUD] Found playtime value: {result["playtime"]}");
                         }
                         else
                         {
-                            Console.WriteLine($"[InGameHUD] No playtime found for player {steamId}");
+                            //Console.WriteLine($"[InGameHUD] No playtime found for player {steamId}");
                         }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[InGameHUD] Error getting playtime: {ex.Message}");
-                        Console.WriteLine($"[InGameHUD] Playtime error details: {ex}");
+                        //Console.WriteLine($"[InGameHUD] Error getting playtime: {ex.Message}");
+                        //Console.WriteLine($"[InGameHUD] Playtime error details: {ex}");
                     }
                 }
 
@@ -213,10 +213,10 @@ namespace InGameHUD.Managers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[InGameHUD] Error in GetCustomData: {ex.Message}");
-                Console.WriteLine($"[InGameHUD] Database: {_config.MySqlConnection.Database}");
-                Console.WriteLine($"[InGameHUD] Connection string: {_connectionString}");
-                Console.WriteLine($"[InGameHUD] Stack trace: {ex.StackTrace}");
+                //Console.WriteLine($"[InGameHUD] Error in GetCustomData: {ex.Message}");
+                //Console.WriteLine($"[InGameHUD] Database: {_config.MySqlConnection.Database}");
+                //Console.WriteLine($"[InGameHUD] Connection string: {_connectionString}");
+                //Console.WriteLine($"[InGameHUD] Stack trace: {ex.StackTrace}");
                 return result;
             }
         }
