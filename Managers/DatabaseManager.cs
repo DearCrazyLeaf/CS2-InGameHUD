@@ -6,229 +6,219 @@ namespace InGameHUD.Managers
     public class DatabaseManager
     {
         private readonly Config _config;
-        private readonly Dictionary<string, PlayerData> _memoryStorage;
-        private string? _connectionString;
-        private bool _mysqlAvailable;
+        private readonly string _connectionString;
 
-        public DatabaseManager(string moduleDirectory, Config config)
+        public DatabaseManager(Config config)
         {
             _config = config;
-            _memoryStorage = new Dictionary<string, PlayerData>();
-
-            Console.WriteLine("[InGameHUD] DatabaseManager initialization:");
-
-            try
-            {
-                InitializeMySQLConnection();
-                if (_mysqlAvailable)
-                {
-                    CreateSettingsTable();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[InGameHUD] MySQL initialization failed: {ex.Message}");
-                _mysqlAvailable = false;
-            }
+            _connectionString = $"Server={config.MySqlConnection.Host};" +
+                              $"Port={config.MySqlConnection.Port};" +
+                              $"Database={config.MySqlConnection.Database};" +
+                              $"User={config.MySqlConnection.Username};" +
+                              $"Password={config.MySqlConnection.Password};";
         }
 
-        private void InitializeMySQLConnection()
+        public async Task<(bool success, string error)> TestConnection()
         {
-            try
-            {
-                _connectionString = $"Server={_config.MySqlConnection.Host};" +
-                                  $"Port={_config.MySqlConnection.Port};" +
-                                  $"Database={_config.MySqlConnection.Database};" +
-                                  $"User={_config.MySqlConnection.Username};" +
-                                  $"Password={_config.MySqlConnection.Password};" +
-                                  "CharSet=utf8;";
-
-                using (var connection = new MySqlConnection(_connectionString))
-                {
-                    connection.Open();
-                    _mysqlAvailable = true;
-                    Console.WriteLine("[InGameHUD] MySQL connection successful");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[InGameHUD] MySQL connection failed: {ex.Message}");
-                _mysqlAvailable = false;
-                _connectionString = null;
-            }
-        }
-
-        private void CreateSettingsTable()
-        {
-            if (!_mysqlAvailable || string.IsNullOrEmpty(_connectionString)) return;
-
             try
             {
                 using var connection = new MySqlConnection(_connectionString);
-                connection.Open();
-                using var command = connection.CreateCommand();
-                command.CommandText = @"
-                CREATE TABLE IF NOT EXISTS ingamehud_settings (
-                    steam_id VARCHAR(64) PRIMARY KEY,
-                    hud_enabled BOOLEAN DEFAULT TRUE,
-                    hud_position INT DEFAULT 0,
-                    language VARCHAR(10) DEFAULT 'zh',
-                    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-                )";
-                command.ExecuteNonQuery();
-                Console.WriteLine("[InGameHUD] Settings table created or verified");
+                await connection.OpenAsync();
+
+                // 建表
+                await CreatePlayerSettingsTable(connection);
+
+                return (true, string.Empty);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[InGameHUD] Failed to create settings table: {ex.Message}");
-                _mysqlAvailable = false;
+                return (false, ex.Message);
             }
         }
 
-        public async Task<PlayerData> LoadPlayerData(string steamId)
+        private async Task CreatePlayerSettingsTable(MySqlConnection connection)
         {
-            var playerData = new PlayerData(steamId);
-
-            if (_mysqlAvailable && !string.IsNullOrEmpty(_connectionString))
+            try
             {
-                try
-                {
-                    using var connection = new MySqlConnection(_connectionString);
-                    await connection.OpenAsync();
+                var command = connection.CreateCommand();
+                command.CommandText = @"
+                    CREATE TABLE IF NOT EXISTS player_settings (
+                        steam_id VARCHAR(32) NOT NULL PRIMARY KEY,
+                        hud_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+                        hud_position INT NOT NULL DEFAULT 1,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
 
-                    using var transaction = await connection.BeginTransactionAsync();
+                await command.ExecuteNonQueryAsync();
+                Console.WriteLine("[InGameHUD] Database table initialized successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[InGameHUD] Error creating database table: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task SavePlayerSettings(PlayerData playerData)
+        {
+            try
+            {
+                using var connection = new MySqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                var command = connection.CreateCommand();
+                command.CommandText = @"
+                    INSERT INTO player_settings (steam_id, hud_enabled, hud_position) 
+                    VALUES (@steamId, @enabled, @position)
+                    ON DUPLICATE KEY UPDATE 
+                    hud_enabled = @enabled,
+                    hud_position = @position";
+
+                command.Parameters.AddWithValue("@steamId", playerData.SteamID);
+                command.Parameters.AddWithValue("@enabled", playerData.HUDEnabled);
+                command.Parameters.AddWithValue("@position", (int)playerData.HUDPosition + 1);
+
+                await command.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[InGameHUD] Error saving player settings: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<PlayerData> LoadPlayerSettings(string steamId)
+        {
+            try
+            {
+                using var connection = new MySqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                var command = connection.CreateCommand();
+                command.CommandText = "SELECT * FROM player_settings WHERE steam_id = @steamId";
+                command.Parameters.AddWithValue("@steamId", steamId);
+
+                using var reader = await command.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    return new PlayerData(steamId)
+                    {
+                        HUDEnabled = reader.GetBoolean("hud_enabled"),
+                        HUDPosition = (HUDPosition)(reader.GetInt32("hud_position") - 1)
+                    };
+                }
+                return new PlayerData(steamId); // 返回默认设置
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[InGameHUD] Error loading player settings: {ex.Message}");
+                return new PlayerData(steamId); // 发生错误时返回默认设置
+            }
+        }
+
+        public async Task<Dictionary<string, string>> GetCustomData(string steamId)
+        {
+            var result = new Dictionary<string, string>();
+            try
+            {
+                using var connection = new MySqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                // 检查数据库连接状态
+                //Console.WriteLine($"[InGameHUD] Database connection state: {connection.State}");
+                //Console.WriteLine($"[InGameHUD] Using database: {_config.MySqlConnection.Database}");
+
+                if (_config.CustomData.Credits.Enabled)
+                {
                     try
                     {
-                        using var command = connection.CreateCommand();
-                        command.Transaction = transaction;
-                        command.CommandText = "SELECT hud_enabled, hud_position, language FROM ingamehud_settings WHERE steam_id = @steam_id";
-                        command.Parameters.AddWithValue("@steam_id", steamId);
+                        var creditsCommand = connection.CreateCommand();
+                        var creditsTable = _config.CustomData.Credits.TableName;
+                        var creditsColumn = _config.CustomData.Credits.ColumnName;
 
-                        using var reader = await command.ExecuteReaderAsync();
-                        if (await reader.ReadAsync())
+                        // 使用完全限定的表名
+                        string creditsQuery = $@"
+                            SELECT `{creditsColumn}` 
+                            FROM `{_config.MySqlConnection.Database}`.`{creditsTable}` 
+                            WHERE SteamID = @steamId;";
+
+                        creditsCommand.CommandText = creditsQuery;
+                        creditsCommand.Parameters.AddWithValue("@steamId", steamId);
+
+                        //Console.WriteLine($"[InGameHUD] Executing credits query for player {steamId}:");
+                        //Console.WriteLine($"[InGameHUD] Table: {creditsTable}, Column: {creditsColumn}");
+                        //Console.WriteLine($"[InGameHUD] Query: {creditsQuery}");
+
+                        var creditsResult = await creditsCommand.ExecuteScalarAsync();
+
+                        if (creditsResult != null && creditsResult != DBNull.Value)
                         {
-                            playerData.HUDEnabled = reader.GetBoolean(0);
-                            playerData.HUDPosition = (HUDPosition)reader.GetInt32(1);
-                            playerData.Language = reader.GetString(2);
+                            result["credits"] = creditsResult.ToString() ?? "0";
+                            //Console.WriteLine($"[InGameHUD] Found credits value: {result["credits"]}");
                         }
                         else
                         {
-                            reader.Close();
-
-                            command.CommandText = @"
-                            INSERT INTO ingamehud_settings (steam_id, hud_enabled, hud_position, language)
-                            VALUES (@steam_id, @hud_enabled, @hud_position, @language)";
-                            command.Parameters.Clear();
-                            command.Parameters.AddWithValue("@steam_id", steamId);
-                            command.Parameters.AddWithValue("@hud_enabled", true);
-                            command.Parameters.AddWithValue("@hud_position", (int)HUDPosition.TopRight);
-                            command.Parameters.AddWithValue("@language", _config.DefaultLanguage);
-                            await command.ExecuteNonQueryAsync();
+                            //Console.WriteLine($"[InGameHUD] No credits found for player {steamId}");
                         }
-
-                        if (_config.CustomData.Credits.Enabled)
-                        {
-                            command.CommandText = $"SELECT {_config.CustomData.Credits.ColumnName} FROM {_config.CustomData.Credits.TableName} WHERE steam_id = @steamid";
-                            command.Parameters.Clear();
-                            command.Parameters.AddWithValue("@steamid", steamId);
-                            var credits = await command.ExecuteScalarAsync();
-                            if (credits != null && credits != DBNull.Value)
-                            {
-                                playerData.Credits = Convert.ToInt32(credits);
-                            }
-                        }
-
-                        if (_config.CustomData.Playtime.Enabled)
-                        {
-                            command.CommandText = $"SELECT {_config.CustomData.Playtime.ColumnName} FROM {_config.CustomData.Playtime.TableName} WHERE steam_id = @steamid";
-                            command.Parameters.Clear();
-                            command.Parameters.AddWithValue("@steamid", steamId);
-                            var playtime = await command.ExecuteScalarAsync();
-                            if (playtime != null && playtime != DBNull.Value)
-                            {
-                                playerData.Playtime = TimeSpan.FromSeconds(Convert.ToInt32(playtime));
-                            }
-                        }
-
-                        await transaction.CommitAsync();
-                        Console.WriteLine($"[InGameHUD] Successfully loaded data for player {steamId}");
                     }
                     catch (Exception ex)
                     {
-                        await transaction.RollbackAsync();
-                        throw;
+                        //Console.WriteLine($"[InGameHUD] Error getting credits: {ex.Message}");
+                        //Console.WriteLine($"[InGameHUD] Credits error details: {ex}");
                     }
                 }
-                catch (Exception ex)
+
+                if (_config.CustomData.Playtime.Enabled)
                 {
-                    Console.WriteLine($"[InGameHUD] Failed to load data from MySQL: {ex.Message}");
-                    if (_memoryStorage.TryGetValue(steamId, out var storedData))
+                    try
                     {
-                        playerData = storedData;
+                        var playtimeCommand = connection.CreateCommand();
+                        var playtimeTable = _config.CustomData.Playtime.TableName;
+                        var playtimeColumn = _config.CustomData.Playtime.ColumnName;
+
+                        // 使用完全限定的表名
+                        string playtimeQuery = $@"
+                            SELECT `{playtimeColumn}` 
+                            FROM `{_config.MySqlConnection.Database}`.`{playtimeTable}` 
+                            WHERE steam_id = @steamId;";
+
+                        playtimeCommand.CommandText = playtimeQuery;
+                        playtimeCommand.Parameters.AddWithValue("@steamId", steamId);
+
+                        //Console.WriteLine($"[InGameHUD] Executing playtime query for player {steamId}:");
+                        //Console.WriteLine($"[InGameHUD] Table: {playtimeTable}, Column: {playtimeColumn}");
+                        //Console.WriteLine($"[InGameHUD] Query: {playtimeQuery}");
+
+                        var playtimeResult = await playtimeCommand.ExecuteScalarAsync();
+
+                        if (playtimeResult != null && playtimeResult != DBNull.Value)
+                        {
+                            result["playtime"] = playtimeResult.ToString() ?? "0";
+                            //Console.WriteLine($"[InGameHUD] Found playtime value: {result["playtime"]}");
+                        }
+                        else
+                        {
+                            //Console.WriteLine($"[InGameHUD] No playtime found for player {steamId}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        //Console.WriteLine($"[InGameHUD] Error getting playtime: {ex.Message}");
+                        //Console.WriteLine($"[InGameHUD] Playtime error details: {ex}");
                     }
                 }
+
+                return result;
             }
-            else
+            catch (Exception ex)
             {
-                if (_memoryStorage.TryGetValue(steamId, out var storedData))
-                {
-                    playerData = storedData;
-                }
-                else
-                {
-                    playerData.HUDEnabled = true;
-                    playerData.HUDPosition = HUDPosition.TopRight;
-                    playerData.Language = _config.DefaultLanguage;
-                    _memoryStorage[steamId] = playerData;
-                }
+                //Console.WriteLine($"[InGameHUD] Error in GetCustomData: {ex.Message}");
+                //Console.WriteLine($"[InGameHUD] Database: {_config.MySqlConnection.Database}");
+                //Console.WriteLine($"[InGameHUD] Connection string: {_connectionString}");
+                //Console.WriteLine($"[InGameHUD] Stack trace: {ex.StackTrace}");
+                return result;
             }
-
-            return playerData;
-        }
-
-        public async Task SavePlayerData(string steamId, PlayerData playerData)
-        {
-            if (_mysqlAvailable && !string.IsNullOrEmpty(_connectionString))
-            {
-                try
-                {
-                    using var connection = new MySqlConnection(_connectionString);
-                    await connection.OpenAsync();
-
-                    using var command = connection.CreateCommand();
-                    command.CommandText = @"
-                    INSERT INTO ingamehud_settings 
-                        (steam_id, hud_enabled, hud_position, language)
-                    VALUES 
-                        (@steam_id, @hud_enabled, @hud_position, @language)
-                    ON DUPLICATE KEY UPDATE
-                        hud_enabled = VALUES(hud_enabled),
-                        hud_position = VALUES(hud_position),
-                        language = VALUES(language)";
-
-                    command.Parameters.AddWithValue("@steam_id", steamId);
-                    command.Parameters.AddWithValue("@hud_enabled", playerData.HUDEnabled);
-                    command.Parameters.AddWithValue("@hud_position", (int)playerData.HUDPosition);
-                    command.Parameters.AddWithValue("@language", playerData.Language);
-
-                    await command.ExecuteNonQueryAsync();
-                    Console.WriteLine($"[InGameHUD] Successfully saved settings for player {steamId}");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[InGameHUD] Failed to save settings to MySQL: {ex.Message}");
-                    _memoryStorage[steamId] = playerData;
-                }
-            }
-            else
-            {
-                _memoryStorage[steamId] = playerData;
-            }
-        }
-
-        public void Dispose()
-        {
-            _memoryStorage.Clear();
         }
     }
 }

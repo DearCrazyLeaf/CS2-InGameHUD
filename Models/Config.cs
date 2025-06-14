@@ -28,11 +28,30 @@ namespace InGameHUD.Models
         [JsonPropertyName("show_kda")]
         public bool ShowKDA { get; set; } = true;
 
-        [JsonPropertyName("show_weapon")]
-        public bool ShowWeapon { get; set; } = true;
+        [JsonPropertyName("show_health")]
+        public bool ShowHealth { get; set; } = true;
+
+        private string _textColorName = "White";
 
         [JsonPropertyName("text_color")]
-        public Color TextColor { get; set; } = Color.White;
+        public string TextColor
+        {
+            get => _textColorName;
+            set
+            {
+                _textColorName = value;
+                try
+                {
+                    // 尝试将字符串转换为Color对象，验证颜色名称是否有效
+                    _ = Color.FromName(value);
+                }
+                catch
+                {
+                    Console.WriteLine($"[InGameHUD] Invalid color name: {value}, using default White");
+                    _textColorName = "White";
+                }
+            }
+        }
 
         [JsonPropertyName("mysql_connection")]
         public MySqlSettings MySqlConnection { get; set; } = new();
