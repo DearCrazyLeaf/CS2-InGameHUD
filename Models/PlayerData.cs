@@ -18,7 +18,7 @@ namespace InGameHUD.Models
         public string SteamID { get; private set; }
         public int Credits { get; set; }
         public TimeSpan Playtime { get; set; }
-        public HUDPosition HUDPosition { get; set; } = HUDPosition.TopRight; // 改为默认右上角
+        public HUDPosition HUDPosition { get; set; } = HUDPosition.TopRight;
         public bool HUDEnabled { get; set; } = true;
         public string Language { get; set; } = "zh";
         public Dictionary<string, object> CustomData { get; } = new();
@@ -29,7 +29,6 @@ namespace InGameHUD.Models
             LastUpdated = DateTime.UtcNow;
         }
 
-        // 深度复制方法，用于缓存
         public PlayerData Clone()
         {
             var clone = new PlayerData(SteamID)

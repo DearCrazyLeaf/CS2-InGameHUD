@@ -96,11 +96,9 @@ namespace InGameHUD.Managers
                     using var connection = new MySqlConnection(_connectionString);
                     await connection.OpenAsync();
 
-                    // 使用事务来确保数据一致性
                     using var transaction = await connection.BeginTransactionAsync();
                     try
                     {
-                        // 加载设置
                         using var command = connection.CreateCommand();
                         command.Transaction = transaction;
                         command.CommandText = "SELECT hud_enabled, hud_position, language FROM ingamehud_settings WHERE steam_id = @steam_id";
@@ -115,10 +113,8 @@ namespace InGameHUD.Managers
                         }
                         else
                         {
-                            // 关闭当前reader以执行插入操作
                             reader.Close();
 
-                            // 插入默认设置
                             command.CommandText = @"
                             INSERT INTO ingamehud_settings (steam_id, hud_enabled, hud_position, language)
                             VALUES (@steam_id, @hud_enabled, @hud_position, @language)";
@@ -130,7 +126,6 @@ namespace InGameHUD.Managers
                             await command.ExecuteNonQueryAsync();
                         }
 
-                        // 加载自定义数据
                         if (_config.CustomData.Credits.Enabled)
                         {
                             command.CommandText = $"SELECT {_config.CustomData.Credits.ColumnName} FROM {_config.CustomData.Credits.TableName} WHERE steam_id = @steamid";
@@ -167,7 +162,6 @@ namespace InGameHUD.Managers
                 catch (Exception ex)
                 {
                     Console.WriteLine($"[InGameHUD] Failed to load data from MySQL: {ex.Message}");
-                    // 如果MySQL加载失败，使用内存存储
                     if (_memoryStorage.TryGetValue(steamId, out var storedData))
                     {
                         playerData = storedData;
@@ -176,7 +170,6 @@ namespace InGameHUD.Managers
             }
             else
             {
-                // 从内存加载设置
                 if (_memoryStorage.TryGetValue(steamId, out var storedData))
                 {
                     playerData = storedData;
@@ -224,7 +217,6 @@ namespace InGameHUD.Managers
                 catch (Exception ex)
                 {
                     Console.WriteLine($"[InGameHUD] Failed to save settings to MySQL: {ex.Message}");
-                    // 如果MySQL保存失败，保存到内存
                     _memoryStorage[steamId] = playerData;
                 }
             }
