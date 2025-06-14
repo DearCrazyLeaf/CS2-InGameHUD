@@ -54,7 +54,6 @@ namespace InGameHUD
                 }
 
                 _playerCache = new Dictionary<string, PlayerData>();
-
                 _langManager = new LanguageManager(ModuleDirectory, Config.DefaultLanguage);
                 _dbManager = new DatabaseManager(ModuleDirectory, Config);
                 _hudManager = new HUDManager(_api, Config, _langManager);
@@ -65,8 +64,6 @@ namespace InGameHUD
 
                 RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
                 RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
-
-                AddTimer(Config.HUDUpdateInterval, UpdateHUD, TimerFlags.REPEAT);
 
                 if (hotReload)
                 {
@@ -113,7 +110,7 @@ namespace InGameHUD
 
                     if (playerData.HUDEnabled)
                     {
-                        Server.NextFrame(() => _hudManager.UpdateHUD(player, playerData));
+                        Server.NextFrame(() => _hudManager.EnableHUD(player, playerData));
                     }
                 }
                 catch (Exception ex)
@@ -153,25 +150,6 @@ namespace InGameHUD
             return HookResult.Continue;
         }
 
-        private void UpdateHUD()
-        {
-            foreach (var player in Utilities.GetPlayers())
-            {
-                if (player == null || !player.IsValid ||
-                    player.PlayerPawn.Value == null ||
-                    player.PlayerPawn.Value.IsValid == false ||
-                    player.Connected != PlayerConnectedState.PlayerConnected ||
-                    player.IsBot)
-                    continue;
-
-                var steamId = player.SteamID.ToString();
-                if (_playerCache.TryGetValue(steamId, out var playerData) && playerData.HUDEnabled)
-                {
-                    Server.NextFrame(() => _hudManager.UpdateHUD(player, playerData));
-                }
-            }
-        }
-
         private void CommandToggleHUD(CCSPlayerController? player, CommandInfo command)
         {
             if (player == null || !player.IsValid) return;
@@ -184,7 +162,6 @@ namespace InGameHUD
                 if (playerData.HUDEnabled)
                 {
                     _hudManager.EnableHUD(player, playerData);
-                    Server.NextFrame(() => _hudManager.UpdateHUD(player, playerData));
                     player.PrintToChat($" {ChatColors.Green}{_langManager.GetPhrase("hud.enabled", playerData.Language)}");
                 }
                 else
@@ -193,7 +170,10 @@ namespace InGameHUD
                     player.PrintToChat($" {ChatColors.Red}{_langManager.GetPhrase("hud.disabled", playerData.Language)}");
                 }
 
-                _dbManager.SavePlayerData(steamId, playerData).Wait();
+                Task.Run(async () =>
+                {
+                    await _dbManager.SavePlayerData(steamId, playerData);
+                });
             }
         }
 

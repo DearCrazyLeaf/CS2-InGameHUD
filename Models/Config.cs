@@ -7,7 +7,24 @@ namespace InGameHUD.Models
 {
     public class Config : IBasePluginConfig
     {
+        [JsonPropertyName("version")]
         public int Version { get; set; } = 1;
+
+        [JsonPropertyName("font_size")]
+        public int FontSize { get; set; } = 50;
+
+        [JsonPropertyName("font_name")]
+        public string FontName { get; set; } = "Arial Bold";
+
+        [JsonPropertyName("scale")]
+        public float Scale { get; set; } = 0.1f;
+
+        [JsonPropertyName("background_opacity")]
+        public float BackgroundOpacity { get; set; } = 0.6f;
+
+        [JsonPropertyName("background_scale")]
+        public float BackgroundScale { get; set; } = 0.3f;
+
         [JsonPropertyName("show_kda")]
         public bool ShowKDA { get; set; } = true;
 
@@ -17,17 +34,11 @@ namespace InGameHUD.Models
         [JsonPropertyName("text_color")]
         public Color TextColor { get; set; } = Color.White;
 
-        [JsonPropertyName("announcement_color")]
-        public Color AnnouncementColor { get; set; } = Color.Yellow;
-
         [JsonPropertyName("mysql_connection")]
         public MySqlSettings MySqlConnection { get; set; } = new();
 
         [JsonPropertyName("custom_data")]
         public CustomDataSettings CustomData { get; set; } = new();
-
-        [JsonPropertyName("hud_update_interval")]
-        public float HUDUpdateInterval { get; set; } = 0.1f;
 
         [JsonPropertyName("default_language")]
         public string DefaultLanguage { get; set; } = "zh";

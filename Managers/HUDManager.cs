@@ -12,7 +12,6 @@ namespace InGameHUD.Managers
         private readonly IGameHUDAPI _api;
         private readonly Config _config;
         private readonly LanguageManager _langManager;
-        private readonly InGameHUD _plugin;
         private const byte MAIN_HUD_CHANNEL = 1;
 
         public HUDManager(IGameHUDAPI api, Config config, LanguageManager langManager)
@@ -24,9 +23,18 @@ namespace InGameHUD.Managers
 
         public void UpdateHUD(CCSPlayerController player, PlayerData playerData)
         {
-            if (!playerData.HUDEnabled || player == null || !player.IsValid || player.PlayerPawn?.Value == null)
+            if (player == null || !player.IsValid)
             {
-                DisableHUD(player);
+                return;
+            }
+
+            if (!playerData.HUDEnabled)
+            {
+                return;
+            }
+
+            if (player.PlayerPawn?.Value == null)
+            {
                 return;
             }
 
@@ -40,23 +48,27 @@ namespace InGameHUD.Managers
 
                 if (_config.ShowKDA)
                 {
-                    hudBuilder.AppendLine(_langManager.GetPhrase("hud.kda", lang,
-                        player.ActionTrackingServices?.MatchStats.Kills ?? 0,
-                        player.ActionTrackingServices?.MatchStats.Deaths ?? 0,
-                        player.ActionTrackingServices?.MatchStats.Assists ?? 0));
+                    var actionStats = player.ActionTrackingServices?.MatchStats;
+                    if (actionStats != null)
+                    {
+                        hudBuilder.AppendLine(_langManager.GetPhrase("hud.kda", lang,
+                            actionStats.Kills,
+                            actionStats.Deaths,
+                            actionStats.Assists));
+                    }
                 }
 
                 if (_config.ShowWeapon && player.PawnIsAlive)
                 {
                     var weaponServices = pawn.WeaponServices;
-                    if (weaponServices?.ActiveWeapon?.Value != null)
+                    var activeWeapon = weaponServices?.ActiveWeapon?.Value;
+                    if (activeWeapon != null)
                     {
-                        var weapon = weaponServices.ActiveWeapon.Value;
-                        var clip = weapon.Clip1;
-                        var reserve = weapon.ReserveAmmo.Length > 0 ? weapon.ReserveAmmo[0] : 0;
+                        var clip = activeWeapon.Clip1;
+                        var reserve = activeWeapon.ReserveAmmo.Length > 0 ? activeWeapon.ReserveAmmo[0] : 0;
 
                         hudBuilder.AppendLine(_langManager.GetPhrase("hud.weapon", lang,
-                            weapon.DesignerName,
+                            activeWeapon.DesignerName,
                             clip,
                             reserve));
                     }
@@ -70,26 +82,22 @@ namespace InGameHUD.Managers
 
                 var position = GetHUDPosition(playerData.HUDPosition);
 
-                _api.Native_GameHUD_Remove(player, MAIN_HUD_CHANNEL);
-
                 _api.Native_GameHUD_SetParams(
                     player,
                     MAIN_HUD_CHANNEL,
                     position,
                     _config.TextColor,
-                    35,  // 字体大小
-                    "Arial Bold",
-                    0.07f,  // 保持原始缩放
+                    _config.FontSize,              // 从配置中获取字体大小
+                    _config.FontName,              // 从配置中获取字体名称
+                    _config.Scale,                 // 从配置中获取缩放
                     PointWorldTextJustifyHorizontal_t.POINT_WORLD_TEXT_JUSTIFY_HORIZONTAL_LEFT,
-                    PointWorldTextJustifyVertical_t.POINT_WORLD_TEXT_JUSTIFY_VERTICAL_TOP,
+                    PointWorldTextJustifyVertical_t.POINT_WORLD_TEXT_JUSTIFY_VERTICAL_BOTTOM,
                     PointWorldTextReorientMode_t.POINT_WORLD_TEXT_REORIENT_NONE,
-                    0.0f,
-                    0.0f
+                    _config.BackgroundOpacity,     // 从配置中获取背景透明度
+                    _config.BackgroundScale        // 从配置中获取背景缩放
                 );
 
-                _api.Native_GameHUD_Show(player, MAIN_HUD_CHANNEL, hudBuilder.ToString(), 5.0f);
-
-                _plugin.AddTimer(4.9f, () => RefreshHUD(player, playerData));
+                _api.Native_GameHUD_Show(player, MAIN_HUD_CHANNEL, hudBuilder.ToString());
 
                 Console.WriteLine($"[InGameHUD] Updated HUD for player {player.PlayerName}");
             }
@@ -99,43 +107,34 @@ namespace InGameHUD.Managers
             }
         }
 
-        private void RefreshHUD(CCSPlayerController player, PlayerData playerData)
-        {
-            if (player.IsValid && playerData.HUDEnabled)
-            {
-                UpdateHUD(player, playerData);
-            }
-        }
-
         public void EnableHUD(CCSPlayerController player, PlayerData playerData)
         {
-            if (!player.IsValid) return;
+            if (player == null || !player.IsValid || playerData == null)
+                return;
 
             try
             {
-                DisableHUD(player);
                 playerData.HUDEnabled = true;
                 UpdateHUD(player, playerData);
-                Console.WriteLine($"[InGameHUD] Enabled HUD for player {player.PlayerName}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[InGameHUD] Error enabling HUD: {ex.Message}");
+                Console.WriteLine($"[InGameHUD] Error enabling HUD for {player.PlayerName}: {ex.Message}");
             }
         }
 
         public void DisableHUD(CCSPlayerController player)
         {
-            if (!player.IsValid) return;
+            if (player == null || !player.IsValid)
+                return;
 
             try
             {
                 _api.Native_GameHUD_Remove(player, MAIN_HUD_CHANNEL);
-                Console.WriteLine($"[InGameHUD] Disabled HUD for player {player.PlayerName}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[InGameHUD] Error disabling HUD: {ex.Message}");
+                Console.WriteLine($"[InGameHUD] Error disabling HUD for {player.PlayerName}: {ex.Message}");
             }
         }
 
@@ -143,12 +142,12 @@ namespace InGameHUD.Managers
         {
             return position switch
             {
-                HUDPosition.TopLeft => new Vector(10, 10, 80),      // 左上角
-                HUDPosition.TopRight => new Vector(90, 10, 80),     // 右上角
-                HUDPosition.BottomLeft => new Vector(10, 90, 80),   // 左下角
-                HUDPosition.BottomRight => new Vector(90, 90, 80),  // 右下角
-                HUDPosition.Center => new Vector(50, 50, 80),       // 中间
-                _ => new Vector(90, 10, 80)                         // 默认右上角
+                HUDPosition.TopLeft => new Vector(5, 5, 95),       // 左上角
+                HUDPosition.TopRight => new Vector(25, 5, 95),     // 右上角
+                HUDPosition.BottomLeft => new Vector(5, 25, 95),   // 左下角
+                HUDPosition.BottomRight => new Vector(25, 25, 95), // 右下角
+                HUDPosition.Center => new Vector(15, 15, 95),      // 中间
+                _ => new Vector(25, 5, 95)                         // 默认右上角
             };
         }
     }
