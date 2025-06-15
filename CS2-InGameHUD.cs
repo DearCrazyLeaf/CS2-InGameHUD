@@ -21,7 +21,7 @@ namespace InGameHUD
         public override string ModuleVersion => "1.0.0";
         public override string ModuleAuthor => "DearCrazyLeaf";
         public override string ModuleDescription => "Displays customizable HUD for players";
-
+        private int _tickCounter = 0;
         private static IGameHUDAPI? _api;
         private const byte MAIN_HUD_CHANNEL = 0;
         private Dictionary<string, PlayerData> _playerCache = new();
@@ -85,6 +85,7 @@ namespace InGameHUD
                 // 注册Tick更新
                 RegisterListener<Listeners.OnTick>(() =>
                 {
+                    if (++_tickCounter % 5 != 0) return;
                     foreach (var player in Utilities.GetPlayers())
                     {
                         if (player == null || !player.IsValid || player.IsBot) continue;
