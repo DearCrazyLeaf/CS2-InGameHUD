@@ -106,9 +106,9 @@ namespace InGameHUD.Models
     public class CustomDataSettings
     {
         [JsonPropertyName("credits")]
-        public CustomTableSettings Credits { get; set; } = new()
+        public CreditsSetting Credits { get; set; } = new()
         {
-            Enabled = true,
+            Enabled = false,
         };
 
         [JsonPropertyName("playtime")]
@@ -126,6 +126,12 @@ namespace InGameHUD.Models
             TableName = "player_signin",
             ColumnName = "last_signin"
         };
+    }
+
+    public class CreditsSetting
+    {
+        [JsonPropertyName("enabled")]
+        public bool Enabled { get; set; }
     }
 
     public class CustomTableSettings
