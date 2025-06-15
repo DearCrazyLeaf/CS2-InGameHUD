@@ -109,8 +109,6 @@ namespace InGameHUD.Models
         public CustomTableSettings Credits { get; set; } = new()
         {
             Enabled = true,
-            TableName = "store_players",
-            ColumnName = "credits"
         };
 
         [JsonPropertyName("playtime")]

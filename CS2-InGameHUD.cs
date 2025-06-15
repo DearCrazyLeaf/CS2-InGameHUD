@@ -11,6 +11,7 @@ using System.Drawing;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Core.Capabilities;
 using CS2_GameHUDAPI;
+using StoreApi;
 
 namespace InGameHUD
 {
@@ -211,6 +212,16 @@ namespace InGameHUD
                 }
 
                 // -----------------------------------------------------------------添加自定义数据
+                if (Config.CustomData.Credits.Enabled)
+                {
+                    var maybeStore = Server.API.GetCapability(IStoreApi.Capability);
+                    if (maybeStore.HasValue)
+                    {
+                        string apiCredits = maybeStore.Value.GetPlayerCredits(player).ToString();
+                        playerData.CustomData["credits"] = apiCredits;
+                    }
+                }
+
                 if (playerData.CustomData.ContainsKey("credits"))
                 {
                     hudBuilder.AppendLine($"积分: {playerData.CustomData["credits"]}");
