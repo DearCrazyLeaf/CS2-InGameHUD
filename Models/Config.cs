@@ -131,7 +131,7 @@ namespace InGameHUD.Models
     public class CreditsSetting
     {
         [JsonPropertyName("enabled")]
-        public bool Enabled { get; set; } = false;
+        public bool Enabled { get; set; }
     }
 
     public class CustomTableSettings

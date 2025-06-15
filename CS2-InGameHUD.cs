@@ -89,7 +89,7 @@ namespace InGameHUD
                 {
                     try
                     {
-                        _storeApi = IStoreApi.Capability.Get();
+                        IStoreApi.Capability.Get();
                         if (_storeApi != null)
                         {
                             Console.WriteLine("[InGameHUD] StoreAPI loaded successfully!");
@@ -221,7 +221,7 @@ namespace InGameHUD
                 // --- 新增：显示当前系统时间
                 if (Config.ShowTime)
                 {
-                    hudBuilder.AppendLine($"当前时间: {DateTime.Now:HH:mm:ss}");
+                    hudBuilder.AppendLine($"当前时间: {DateTime.Now:HH:mm}");
                 }
 
                 // --- 新增：显示玩家 Ping
@@ -267,25 +267,27 @@ namespace InGameHUD
                 }
 
                 // -----------------------------------------------------------------添加自定义数据
-                if (Config.CustomData.Credits.Enabled && _storeApi != null)
+                if (playerData.CustomData.ContainsKey("credits"))
                 {
                     try
                     {
-                        int playerCredits = _storeApi.GetPlayerCredits(player);
-                        playerData.CustomData["credits"] = playerCredits.ToString();
+                        if (_storeApi != null)
+                        {
+                            int playerCredits = _storeApi.GetPlayerCredits(player);
+                            Console.WriteLine($"[InGameHUD] Credits for {player.PlayerName}: {playerCredits}");
+                            playerData.CustomData["credits"] = playerCredits.ToString();
+
+                            hudBuilder.AppendLine($"积分: {playerCredits}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[InGameHUD] Cannot show credits for {player.PlayerName}: StoreAPI is null");
+                        }
                     }
                     catch (Exception ex)
                     {
-                        // 捕获可能的异常并记录，但不显示给用户，防止HUD更新崩溃
                         Console.WriteLine($"[InGameHUD] Error getting player credits: {ex.Message}");
-                        // 可以选择从自定义数据中移除积分条目，以避免显示过期数据
-                        playerData.CustomData.Remove("credits");
                     }
-                }
-
-                if (playerData.CustomData.ContainsKey("credits"))
-                {
-                    hudBuilder.AppendLine($"积分: {playerData.CustomData["credits"]}");
                 }
 
                 // —— 新增：上次签到
