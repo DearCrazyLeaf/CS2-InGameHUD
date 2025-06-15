@@ -87,7 +87,7 @@ namespace InGameHUD
                 // 注册Tick更新
                 RegisterListener<Listeners.OnTick>(() =>
                 {
-                    if (++_tickCounter % 64 != 0) return;
+                    if (++_tickCounter % 320 != 0) return;
 
                     foreach (var player in Utilities.GetPlayers())
                     {
@@ -210,7 +210,11 @@ namespace InGameHUD
                     hudBuilder.AppendLine($"得分: {player.Score}");
                 }
 
-                // 添加自定义数据
+                // -----------------------------------------------------------------添加自定义数据
+                if (playerData.CustomData.ContainsKey("credits"))
+                {
+                    hudBuilder.AppendLine($"积分: {playerData.CustomData["credits"]}");
+                }
 
                 // —— 新增：上次签到
                 if (playerData.CustomData.ContainsKey("last_signin"))
@@ -228,11 +232,6 @@ namespace InGameHUD
                     }
                 }
 
-                if (playerData.CustomData.ContainsKey("credits"))
-                {
-                    hudBuilder.AppendLine($"积分: {playerData.CustomData["credits"]}");
-                }
-
                 if (playerData.CustomData.ContainsKey("playtime"))
                 {
                     var playtime = int.Parse(playerData.CustomData["playtime"]);
@@ -240,7 +239,7 @@ namespace InGameHUD
                     var minutes = (playtime % 3600) / 60;
                     hudBuilder.AppendLine($"游玩时长: {hours}小时{minutes}分钟");
                 }
-
+                // -----------------------------------------------------------------结束
                 hudBuilder.AppendLine($"===================");
                     hudBuilder.AppendLine($"!hud开关面板");
                     hudBuilder.AppendLine($"!help查看帮助");
