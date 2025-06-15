@@ -108,7 +108,7 @@ namespace InGameHUD.Models
         [JsonPropertyName("credits")]
         public CreditsSetting Credits { get; set; } = new()
         {
-            Enabled = true,
+            Enabled = false,
         };
 
         [JsonPropertyName("playtime")]
