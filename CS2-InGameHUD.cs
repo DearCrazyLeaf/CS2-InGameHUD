@@ -12,6 +12,7 @@ using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Core.Capabilities;
 using CS2_GameHUDAPI;
 using StoreApi;
+using Microsoft.Extensions.Hosting.Internal;
 
 namespace InGameHUD
 {
@@ -23,7 +24,7 @@ namespace InGameHUD
         public override string ModuleAuthor => "DearCrazyLeaf";
         public override string ModuleDescription => "Displays customizable HUD for players";
         private int _tickCounter = 0;
-        private IStoreApi? _storeApi;
+        private static IStoreApi? _storeApi;
         private static IGameHUDAPI? _api;
         private const byte MAIN_HUD_CHANNEL = 0;
         private Dictionary<string, PlayerData> _playerCache = new();
@@ -34,39 +35,8 @@ namespace InGameHUD
 
         public void OnConfigParsed(Config config)
         {
-            // 存储旧配置中的积分显示状态
-            bool wasCreditsEnabled = Config.CustomData.Credits.Enabled;
-
             // 更新配置
             Config = config;
-
-            // 检查积分显示状态是否改变
-            if (!wasCreditsEnabled && Config.CustomData.Credits.Enabled)
-            {
-                // 如果之前禁用但现在启用，尝试加载StoreAPI
-                try
-                {
-                    _storeApi = IStoreApi.Capability.Get();
-                    if (_storeApi != null)
-                    {
-                        Console.WriteLine("[InGameHUD] StoreAPI loaded successfully!");
-                    }
-                    else
-                    {
-                        Console.WriteLine("[InGameHUD] Warning: StoreAPI not found but credits display is enabled. Credits will not be shown.");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[InGameHUD] Warning: Error loading StoreAPI: {ex.Message}. Credits will not be shown.");
-                }
-            }
-            else if (wasCreditsEnabled && !Config.CustomData.Credits.Enabled)
-            {
-                // 如果之前启用但现在禁用，释放StoreAPI引用
-                _storeApi = null;
-            }
-
             Console.WriteLine($"[InGameHUD] Configuration loaded successfully");
         }
 
@@ -84,30 +54,8 @@ namespace InGameHUD
                     throw new Exception("GameHUDAPI not found!");
                 }
 
-                // 仅当配置启用了积分显示时，才尝试加载StoreAPI
-                if (Config.CustomData.Credits.Enabled)
-                {
-                    try
-                    {
-                        IStoreApi.Capability.Get();
-                        if (_storeApi != null)
-                        {
-                            Console.WriteLine("[InGameHUD] StoreAPI loaded successfully!");
-                        }
-                        else
-                        {
-                            Console.WriteLine("[InGameHUD] Warning: StoreAPI not found but credits display is enabled. Credits will not be shown.");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"[InGameHUD] Warning: Error loading StoreAPI: {ex.Message}. Credits will not be shown.");
-                        // 不抛出异常，只记录警告，让插件继续加载
-                    }
-                }
-
-                    // 初始化数据库
-                    _db = new DatabaseManager(Config);
+                // 初始化数据库
+                _db = new DatabaseManager(Config);
                 try
                 {
                     var connectionTask = _db.TestConnection();
@@ -166,6 +114,32 @@ namespace InGameHUD
             {
                 Console.WriteLine($"[InGameHUD] Error loading plugin: {ex.Message}");
                 throw;
+            }
+        }
+
+        public override void OnAllPluginsLoaded(bool hotReload)
+        {
+            base.OnAllPluginsLoaded(hotReload);
+
+            try
+            {
+                Console.WriteLine("[InGameHUD] Attempting to load StoreAPI...");
+                _storeApi = IStoreApi.Capability.Get();
+
+                if (_storeApi != null)
+                {
+                    Console.WriteLine("[InGameHUD] StoreAPI loaded successfully!");
+                }
+                else
+                {
+                    Console.WriteLine("[InGameHUD] StoreAPI not found. Credits will not be shown.");
+                    Config.CustomData.Credits.Enabled = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[InGameHUD] Error loading StoreAPI: {ex.Message}");
+                Config.CustomData.Credits.Enabled = false;
             }
         }
 
@@ -228,7 +202,7 @@ namespace InGameHUD
                 //    根据 CSSharp API 文档，CCSPlayerController.Ping 返回当前 Ping 值
                 if (Config.ShowPing)
                 {
-                    hudBuilder.AppendLine($"当前延迟: {player.Ping} ms");
+                    hudBuilder.AppendLine($"延迟: {player.Ping} ms");
                 }
 
                 // KDA统计
@@ -267,26 +241,33 @@ namespace InGameHUD
                 }
 
                 // -----------------------------------------------------------------添加自定义数据
-                if (playerData.CustomData.ContainsKey("credits"))
+                if (Config.CustomData.Credits.Enabled && _storeApi != null)
                 {
                     try
                     {
-                        if (_storeApi != null)
+                        Console.WriteLine($"[InGameHUD] Attempting to get credits for {player.PlayerName}");
+
+                        // 确保玩家对象有效
+                        if (player != null && player.IsValid)
                         {
                             int playerCredits = _storeApi.GetPlayerCredits(player);
                             Console.WriteLine($"[InGameHUD] Credits for {player.PlayerName}: {playerCredits}");
+
+                            // 将积分数据存储到 playerData 中
                             playerData.CustomData["credits"] = playerCredits.ToString();
 
+                            // 在 HUD 上显示积分
                             hudBuilder.AppendLine($"积分: {playerCredits}");
                         }
                         else
                         {
-                            Console.WriteLine($"[InGameHUD] Cannot show credits for {player.PlayerName}: StoreAPI is null");
+                            Console.WriteLine("[InGameHUD] Player invalid when trying to get credits");
                         }
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine($"[InGameHUD] Error getting player credits: {ex.Message}");
+                        Console.WriteLine($"[InGameHUD] Stack trace: {ex.StackTrace}");
                     }
                 }
 
