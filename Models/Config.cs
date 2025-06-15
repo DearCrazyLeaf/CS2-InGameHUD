@@ -31,6 +31,28 @@ namespace InGameHUD.Models
         [JsonPropertyName("show_health")]
         public bool ShowHealth { get; set; } = true;
 
+        [JsonPropertyName("show_team")]
+        public bool ShowTeams { get; set; } = true;
+
+        // 新增：是否显示当前系统时间
+        [JsonPropertyName("show_time")]
+        public bool ShowTime { get; set; } = true;
+
+        // 新增：是否显示玩家 Ping
+        [JsonPropertyName("show_ping")]
+        public bool ShowPing { get; set; } = true;
+
+        // 新增：是否显示玩家得分（积分）
+        [JsonPropertyName("show_score")]
+        public bool ShowScore { get; set; } = true;
+
+        // 新增：是否显示自定义公告信息
+        [JsonPropertyName("show_announcement_title")]
+        public bool ShowAnnouncementTitle { get; set; } = true;
+
+        [JsonPropertyName("show_announcement")]
+        public bool ShowAnnouncement { get; set; } = true;
+
         private string _textColorName = "White";
 
         [JsonPropertyName("text_color")]
@@ -88,8 +110,7 @@ namespace InGameHUD.Models
         {
             Enabled = true,
             TableName = "store_players",
-            ColumnName = "credits",
-            DisplayName = "credits"
+            ColumnName = "credits"
         };
 
         [JsonPropertyName("playtime")]
@@ -97,8 +118,15 @@ namespace InGameHUD.Models
         {
             Enabled = true,
             TableName = "players_stats",
-            ColumnName = "playtime",
-            DisplayName = "playtime"
+            ColumnName = "playtime"
+        };
+
+        [JsonPropertyName("signin")]
+        public CustomTableSettings Signin { get; set; } = new()
+        {
+            Enabled = true,
+            TableName = "player_signin",
+            ColumnName = "last_signin"
         };
     }
 
@@ -112,8 +140,5 @@ namespace InGameHUD.Models
 
         [JsonPropertyName("column_name")]
         public string ColumnName { get; set; } = "";
-
-        [JsonPropertyName("display_name")]
-        public string DisplayName { get; set; } = "";
     }
 }
