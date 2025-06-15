@@ -21,7 +21,7 @@ namespace InGameHUD
         public override string ModuleVersion => "1.0.0";
         public override string ModuleAuthor => "DearCrazyLeaf";
         public override string ModuleDescription => "Displays customizable HUD for players";
-
+        private int _tickCounter = 0;
         private static IGameHUDAPI? _api;
         private const byte MAIN_HUD_CHANNEL = 0;
         private Dictionary<string, PlayerData> _playerCache = new();
@@ -81,17 +81,24 @@ namespace InGameHUD
                 // 注册事件
                 RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnect);
                 RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
+                RegisterEventHandler<EventPlayerDeath>(OnPlayerDeath);
+                RegisterEventHandler<EventPlayerTeam>(OnPlayerTeam);
 
                 // 注册Tick更新
                 RegisterListener<Listeners.OnTick>(() =>
                 {
+                    if (++_tickCounter % 5 != 0) return;
+
                     foreach (var player in Utilities.GetPlayers())
                     {
-                        if (player == null || !player.IsValid || player.IsBot) continue;
+                        if (player == null || !player.IsValid || player.IsBot)
+                            continue;
 
                         var steamId = player.SteamID.ToString();
+
                         if (_playerCache.TryGetValue(steamId, out var playerData) && playerData.HUDEnabled)
                         {
+                            // 直接调用更新方法，它内部会处理状态检查
                             UpdatePlayerHUDSync(player);
                         }
                     }
@@ -109,6 +116,13 @@ namespace InGameHUD
         private void UpdatePlayerHUDSync(CCSPlayerController player)
         {
             if (player == null || !player.IsValid) return;
+
+            // 添加状态检查：如果玩家死亡或观察者，则移除HUD并不再更新
+            if (!player.PawnIsAlive || player.TeamNum == (int)CsTeam.Spectator)
+            {
+                _api?.Native_GameHUD_Remove(player, MAIN_HUD_CHANNEL);
+                return;
+            }
 
             var steamId = player.SteamID.ToString();
             if (!_playerCache.TryGetValue(steamId, out var playerData)) return;
@@ -246,6 +260,14 @@ namespace InGameHUD
         {
             if (player == null || !player.IsValid) return;
 
+            // 检查玩家状态
+            bool isInvalidState = !player.PawnIsAlive || player.TeamNum == (int)CsTeam.Spectator;
+            if (isInvalidState)
+            {
+                player.PrintToChat($" {ChatColors.Red}当前状态无法启用HUD（死亡或观察者）");
+                return;
+            }
+
             var steamId = player.SteamID.ToString();
             if (!_playerCache.TryGetValue(steamId, out var playerData))
             {
@@ -332,6 +354,32 @@ namespace InGameHUD
                 _playerCache.Remove(steamId);
             }
 
+            return HookResult.Continue;
+        }
+
+        [GameEventHandler]
+        public HookResult OnPlayerDeath(EventPlayerDeath @event, GameEventInfo info)
+        {
+            var player = @event.Userid;
+            if (player != null && player.IsValid && !player.IsBot)
+            {
+                _api?.Native_GameHUD_Remove(player, MAIN_HUD_CHANNEL);
+            }
+            return HookResult.Continue;
+        }
+
+        [GameEventHandler]
+        public HookResult OnPlayerTeam(EventPlayerTeam @event, GameEventInfo info)
+        {
+            var player = @event.Userid;
+            if (player != null && player.IsValid && !player.IsBot)
+            {
+                // 如果切换到观察者队伍，立即移除HUD
+                if (@event.Team == (byte)CsTeam.Spectator)
+                {
+                    _api?.Native_GameHUD_Remove(player, MAIN_HUD_CHANNEL);
+                }
+            }
             return HookResult.Continue;
         }
 
