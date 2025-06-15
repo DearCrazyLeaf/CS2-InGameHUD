@@ -209,6 +209,34 @@ namespace InGameHUD.Managers
                     }
                 }
 
+                if (_config.CustomData.Signin.Enabled)
+                {
+                    try
+                    {
+                        var signinCommand = connection.CreateCommand();
+                        var signinTable = _config.CustomData.Signin.TableName;
+                        var signinColumn = _config.CustomData.Signin.ColumnName;
+
+                        string signinQuery = $@"
+                            SELECT `{signinColumn}` 
+                            FROM `{_config.MySqlConnection.Database}`.`{signinTable}` 
+                            WHERE steamid64 = @steamId;";
+
+                        signinCommand.CommandText = signinQuery;
+                        signinCommand.Parameters.AddWithValue("@steamId", steamId);
+
+                        var signinResult = await signinCommand.ExecuteScalarAsync();
+                        if (signinResult != null && signinResult != DBNull.Value)
+                        {
+                            result["last_signin"] = signinResult.ToString()!;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[InGameHUD] Error getting last signin: {ex.Message}");
+                        Console.WriteLine($"[InGameHUD] Signin error details: {ex}");
+                    }
+                }
                 return result;
             }
             catch (Exception ex)

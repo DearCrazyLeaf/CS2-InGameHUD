@@ -87,7 +87,7 @@ namespace InGameHUD
                 // 注册Tick更新
                 RegisterListener<Listeners.OnTick>(() =>
                 {
-                    if (++_tickCounter % 5 != 0) return;
+                    if (++_tickCounter % 64 != 0) return;
 
                     foreach (var player in Utilities.GetPlayers())
                     {
@@ -162,6 +162,19 @@ namespace InGameHUD
                 hudBuilder.AppendLine($"你好！【{player.PlayerName}】");
                 hudBuilder.AppendLine($"===================");
 
+                // --- 新增：显示当前系统时间
+                if (Config.ShowTime)
+                {
+                    hudBuilder.AppendLine($"当前时间: {DateTime.Now:HH:mm:ss}");
+                }
+
+                // --- 新增：显示玩家 Ping
+                //    根据 CSSharp API 文档，CCSPlayerController.Ping 返回当前 Ping 值
+                if (Config.ShowPing)
+                {
+                    hudBuilder.AppendLine($"当前延迟: {player.Ping} ms");
+                }
+
                 // KDA统计
                 if (Config.ShowKDA && player.ActionTrackingServices?.MatchStats != null)
                 {
@@ -176,21 +189,48 @@ namespace InGameHUD
                 }
 
                 // 阵营显示
-                string teamName = "SPEC";
-                if (player.TeamNum == 2)
+                if (Config.ShowTeams)
                 {
-                    teamName = "T";
+                    string teamName = "SPEC";
+                    if (player.TeamNum == 2)
+                    {
+                        teamName = "T";
+                    }
+                    else if (player.TeamNum == 3)
+                    {
+                        teamName = "CT";
+                    }
+                    hudBuilder.AppendLine($"阵营: {teamName}");
                 }
-                else if (player.TeamNum == 3)
+
+                // --- 新增：显示玩家得分
+                //    根据 CSSharp API 文档，MatchStats.Score 提供当前得分
+                if (Config.ShowScore)
                 {
-                    teamName = "CT";
+                    hudBuilder.AppendLine($"得分: {player.Score}");
                 }
-                hudBuilder.AppendLine($"阵营: {teamName}");
 
                 // 添加自定义数据
+
+                // —— 新增：上次签到
+                if (playerData.CustomData.ContainsKey("last_signin"))
+                {
+                    var lastSignInRaw = playerData.CustomData["last_signin"];
+                    if (DateTime.TryParse(lastSignInRaw, out var lastSignInDt))
+                    {
+                        int daysAgo = (DateTime.Now.Date - lastSignInDt.Date).Days;
+                        string display = daysAgo == 0 ? "今天" : $"{daysAgo}天前";
+                        hudBuilder.AppendLine($"上次签到: {display}");
+                    }
+                    else
+                    {
+                        hudBuilder.AppendLine($"上次签到: 从未签到或数据异常");
+                    }
+                }
+
                 if (playerData.CustomData.ContainsKey("credits"))
                 {
-                    hudBuilder.AppendLine($"积分(重进刷新): {playerData.CustomData["credits"]}");
+                    hudBuilder.AppendLine($"积分: {playerData.CustomData["credits"]}");
                 }
 
                 if (playerData.CustomData.ContainsKey("playtime"))
@@ -200,12 +240,23 @@ namespace InGameHUD
                     var minutes = (playtime % 3600) / 60;
                     hudBuilder.AppendLine($"游玩时长: {hours}小时{minutes}分钟");
                 }
-                    hudBuilder.AppendLine($"上次签到: 开发中");
-                    hudBuilder.AppendLine($"===================");
+
+                hudBuilder.AppendLine($"===================");
                     hudBuilder.AppendLine($"!hud开关面板");
                     hudBuilder.AppendLine($"!help查看帮助");
                     hudBuilder.AppendLine($"!store打开商店");
                     hudBuilder.AppendLine($"官方网站: hlymcn.cn");
+                    hudBuilder.AppendLine($"===================");
+
+                if (Config.ShowAnnouncementTitle)
+                {
+                    hudBuilder.AppendLine($"公告标题");
+                }
+
+                if (Config.ShowAnnouncement)
+                {
+                    hudBuilder.AppendLine($"公告内容");
+                }
 
                 // 显示HUD
                 _api?.Native_GameHUD_ShowPermanent(player, MAIN_HUD_CHANNEL, hudBuilder.ToString());
