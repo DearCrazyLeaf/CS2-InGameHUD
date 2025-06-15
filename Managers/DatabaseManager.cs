@@ -129,46 +129,6 @@ namespace InGameHUD.Managers
                 //Console.WriteLine($"[InGameHUD] Database connection state: {connection.State}");
                 //Console.WriteLine($"[InGameHUD] Using database: {_config.MySqlConnection.Database}");
 
-                if (_config.CustomData.Credits.Enabled)
-                {
-                    try
-                    {
-                        var creditsCommand = connection.CreateCommand();
-                        var creditsTable = _config.CustomData.Credits.TableName;
-                        var creditsColumn = _config.CustomData.Credits.ColumnName;
-
-                        // 使用完全限定的表名
-                        string creditsQuery = $@"
-                            SELECT `{creditsColumn}` 
-                            FROM `{_config.MySqlConnection.Database}`.`{creditsTable}` 
-                            WHERE SteamID = @steamId;";
-
-                        creditsCommand.CommandText = creditsQuery;
-                        creditsCommand.Parameters.AddWithValue("@steamId", steamId);
-
-                        //Console.WriteLine($"[InGameHUD] Executing credits query for player {steamId}:");
-                        //Console.WriteLine($"[InGameHUD] Table: {creditsTable}, Column: {creditsColumn}");
-                        //Console.WriteLine($"[InGameHUD] Query: {creditsQuery}");
-
-                        var creditsResult = await creditsCommand.ExecuteScalarAsync();
-
-                        if (creditsResult != null && creditsResult != DBNull.Value)
-                        {
-                            result["credits"] = creditsResult.ToString() ?? "0";
-                            //Console.WriteLine($"[InGameHUD] Found credits value: {result["credits"]}");
-                        }
-                        else
-                        {
-                            //Console.WriteLine($"[InGameHUD] No credits found for player {steamId}");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        //Console.WriteLine($"[InGameHUD] Error getting credits: {ex.Message}");
-                        //Console.WriteLine($"[InGameHUD] Credits error details: {ex}");
-                    }
-                }
-
                 if (_config.CustomData.Playtime.Enabled)
                 {
                     try
