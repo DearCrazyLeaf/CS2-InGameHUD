@@ -17,11 +17,17 @@
 ## Features
 
 - **Customizable HUD Position**: Players can choose from 5 different positions (Top Left, Top Right, Bottom Left, Bottom Right, and Center)
+
 - **Toggleable Display**: Players can turn the HUD on or off with a simple command
+
 - **MySQL Integration**: Store player preferences and custom data
+
 - **Localization Support**: Easy to translate to any language
+
 - **Player Statistics**: Display ping, KDA, health, team, and more
+
 - **Admin Announcements**: Server admins can display announcements to all players
+
 - **Custom Data Support**: Show credits (with Store API integration), playtime, last sign-in date, and more
 
 > [!WARNING]
@@ -159,8 +165,11 @@ The plugin's configuration file (`InGameHUD.json`) contains the following settin
 }
 ```
 - Change "Last Sign-in" to your desired title to adapt to data retrieved from your table. Don't modify `{0}`!
+
 - Change "Playtime" to your desired title to adapt to data retrieved from your table. Don't modify `{0}` `{1}`!
+
 - You can investigate how to modify other custom content (such as ping, KDA, team, etc., but do not modify the numbers after them, as these are parameter content!). Supports CounterStrikeSharp's native color display:
+
 
 ![image](https://github.com/user-attachments/assets/7471300a-d5a1-4690-81c4-25fe88ac34cd)
 
