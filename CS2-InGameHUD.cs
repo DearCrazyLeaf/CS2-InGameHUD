@@ -386,16 +386,20 @@ namespace InGameHUD
                 _playerCache[steamId] = playerData;
             }
 
-            if (command.ArgCount != 1)
+            string posArg = command.ArgByIndex(1);
+            if (int.TryParse(posArg, out int posInput) && posInput >= 1 && posInput <= 5)
             {
-                player.PrintToChat(_localizer["hud.position_usage"]);
-                player.PrintToChat(_localizer["hud.position_help"]);
-                return;
-            }
+                HUDPosition newPosition = posInput switch
+                {
+                    1 => HUDPosition.TopLeft,
+                    2 => HUDPosition.TopRight,
+                    3 => HUDPosition.BottomLeft,
+                    4 => HUDPosition.BottomRight,
+                    5 => HUDPosition.Center,
+                    _ => playerData.HUDPosition
+                };
 
-            if (int.TryParse(command.ArgByIndex(1), out int pos) && pos >= 1 && pos <= 5)
-            {
-                playerData.HUDPosition = (HUDPosition)(pos - 1);
+                playerData.HUDPosition = newPosition;
 
                 if (playerData.HUDEnabled)
                 {
@@ -409,6 +413,8 @@ namespace InGameHUD
             else
             {
                 player.PrintToChat(_localizer["hud.position_invalid"]);
+                player.PrintToChat(_localizer["hud.position_usage"]);
+                player.PrintToChat(_localizer["hud.position_help"]);
             }
         }
 
