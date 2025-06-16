@@ -8,7 +8,6 @@
 
 ---
 
-
 # CS2-InGameHUD
 
 **A customizable in-game HUD plugin for Counter-Strike 2 servers that displays various information to players in a clean, configurable format that can be positioned anywhere on the screen**
