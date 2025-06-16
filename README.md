@@ -314,11 +314,11 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
   "hud.team": "阵营: {0}",
   "hud.score": "得分: {0}",
   "hud.credits": "积分: {0}",
-  "hud.last_signin": "上次签到: {0}",         // 修改"上次签到"为你想要显示的标题来适配你数据表中获取的数据，请勿修改{0}!
+  "hud.last_signin": "上次签到: {0}",         // 修改"上次签到"为你想要显示的标题来适配从你数据表中获取的数据，请勿修改{0}!
   "hud.never_signed": "从未签到或数据异常",
   "hud.today": "今天",
   "hud.days_ago": "{0}天前",
-  "hud.playtime": "游玩时长: {0}小时{1}分钟",  // 修改""为你想要显示的标题来适配你数据表中获取的数据，请勿修改{0}{1}!
+  "hud.playtime": "游玩时长: {0}小时{1}分钟",  // 修改"游玩时长"为你想要显示的标题来适配从你数据表中获取的数据，请勿修改{0}{1}!
   "hud.separator_bottom": "===================",
   "hud.hint_toggle": "自定义信息，你可以写，!hud开关面板",
   "hud.hint_help": "自定义信息，你可以写，!help查看帮助",
