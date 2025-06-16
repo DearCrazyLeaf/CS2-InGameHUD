@@ -113,9 +113,13 @@ The plugin's configuration file (`InGameHUD.json`) contains the following settin
 
 ### How to use this module
 - The module's design logic is to retrieve the current player's `steamid`, match it with your specified table name and column name, get the corresponding player data from that table's column, and display it with a custom title through the language file. Currently, only two parameter types are provided: time and date.
+
 - Currently, only `playtime` and `signin` modules can be modified, with limitations due to targeted development.
+
 - In `playtime`, the table's `steamid` field name must be `steam_id`, and the data must be in seconds. The calculation method automatically converts it to `n hours n minutes` and prints it on the HUD.
+
 - In `signin`, the table's `steamid` field name must be `steamid64`, and the data must be in standard date format. The calculation method computes the difference between the retrieved data and the query time, retaining only the day parameter difference, and finally displays `n days ago` or `today`.
+
 - After modifying these parameters and correctly matching column names, please modify the language file at `...\addons\counterstrikesharp\plugins\CS2-InGameHUD\lang`. For example, for `en`:
 
 ```json
