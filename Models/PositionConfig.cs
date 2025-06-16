@@ -4,7 +4,6 @@ namespace InGameHUD.Models
 {
     public class PositionConfig
     {
-        // 使用更清晰的属性名
         [JsonPropertyName("x_offset")]
         public float XOffset { get; set; }
 
