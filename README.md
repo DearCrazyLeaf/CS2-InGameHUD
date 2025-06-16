@@ -28,6 +28,17 @@
 > Additionally, the last sign-in time display is customized for our own sign-in system!
 > You can modify these custom content items to display other information as needed, please see the custom content description for details!
 
+> [!NOTE]
+> # Help wanted!
+> Need HUD resolution adaptation.
+> Due to the tricky logic of HUD display, I have no clue how to make it adapt to different resolutions.
+> I can only use hard-coded presets to adjust suitable positions.
+> If anyone can add resolution support to the plugin so that these presets work properly under different aspect ratios, please submit a Pull request to the repository! Thank you very much!
+> # 需要帮助！
+> 需要Hud的分辨率适配，
+> 因为Hud显示逻辑比较刁钻，我没有一点头绪给它做分辨率适配，只能用内部写死的预设来调整合适的位置，
+> 如果有任何人可以给插件添加一个分辨率支持，使得不同比例下的分辨率可以正常使用这些预设，请向仓库提交Pull request！非常感谢！
+
 ## Requirements
 
 - [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp)
