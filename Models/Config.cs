@@ -49,7 +49,7 @@ namespace InGameHUD.Models
         [JsonPropertyName("show_announcement")]
         public bool ShowAnnouncement { get; set; } = true;
 
-        private string _textColorName = "White";
+        private string _textColorName = "Orange";
 
         [JsonPropertyName("text_color")]
         public string TextColor
@@ -77,7 +77,7 @@ namespace InGameHUD.Models
         public CustomDataSettings CustomData { get; set; } = new();
 
         [JsonPropertyName("default_language")]
-        public string DefaultLanguage { get; set; } = "zh-Hans";
+        public string DefaultLanguage { get; set; } = "en";
     }
 
     public class MySqlSettings

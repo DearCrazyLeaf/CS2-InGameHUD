@@ -1,4 +1,7 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using CounterStrikeSharp.API.Modules.Utils;
 
 namespace InGameHUD.Managers
 {
@@ -6,6 +9,7 @@ namespace InGameHUD.Managers
     {
         private readonly Dictionary<string, Dictionary<string, string>> _phrases = new();
         private readonly string _defaultLanguage;
+        private static readonly Regex ColorTagRegex = new Regex(@"\{([A-Za-z]+)\}", RegexOptions.Compiled);
 
         public LanguageManager(string moduleDirectory, string defaultLanguage)
         {
@@ -22,10 +26,12 @@ namespace InGameHUD.Managers
                 CreateDefaultLanguageFiles(langDir);
             }
 
+            EnsureUtf8Encoding(langDir);
+
             foreach (var file in Directory.GetFiles(langDir, "*.json"))
             {
                 var lang = Path.GetFileNameWithoutExtension(file);
-                var json = File.ReadAllText(file);
+                var json = File.ReadAllText(file, Encoding.UTF8);
                 try
                 {
                     var phrases = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
@@ -41,19 +47,59 @@ namespace InGameHUD.Managers
             }
         }
 
+        private void EnsureUtf8Encoding(string langDir)
+        {
+            foreach (var file in Directory.GetFiles(langDir, "*.json"))
+            {
+                try
+                {
+                    var content = File.ReadAllText(file, Encoding.UTF8);
+
+                    if (content.Contains("\\u"))
+                    {
+                        Console.WriteLine($"[InGameHUD] Warning: {file} may contain escaped Unicode characters. Attempting to fix...");
+
+                        var phrases = JsonSerializer.Deserialize<Dictionary<string, string>>(content);
+
+                        var options = new JsonSerializerOptions
+                        {
+                            WriteIndented = true,
+                            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                        };
+
+                        File.WriteAllText(file, JsonSerializer.Serialize(phrases, options), Encoding.UTF8);
+
+                        Console.WriteLine($"[InGameHUD] Fixed file: {file}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[InGameHUD] Error checking encoding for {file}: {ex.Message}");
+                }
+            }
+        }
+
         private void CreateDefaultLanguageFiles(string langDir)
         {
             var defaultPhrases = CreateEnglishPhrases();
             var zhPhrases = CreateChinesePhrases();
 
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+
             File.WriteAllText(
                 Path.Combine(langDir, "en.json"),
-                JsonSerializer.Serialize(defaultPhrases, new JsonSerializerOptions { WriteIndented = true })
+                JsonSerializer.Serialize(defaultPhrases, options),
+                Encoding.UTF8
             );
 
             File.WriteAllText(
                 Path.Combine(langDir, "zh-Hans.json"),
-                JsonSerializer.Serialize(zhPhrases, new JsonSerializerOptions { WriteIndented = true })
+                JsonSerializer.Serialize(zhPhrases, options),
+                Encoding.UTF8
             );
         }
 
@@ -88,14 +134,14 @@ namespace InGameHUD.Managers
                 { "hud.team_ct", "CT" },
                 { "hud.team_spec", "SPEC" },
 
-                { "hud.enabled", "HUD has been enabled" },
-                { "hud.disabled", "HUD has been disabled" },
-                { "hud.invalid_state", "Cannot enable HUD in current state (dead or spectator)" },
-                { "hud.position_usage", "Usage: !hudpos <1-5>" },
-                { "hud.position_help", "1:TopLeft 2:TopRight 3:BottomLeft 4:BottomRight 5:Center" },
-                { "hud.position_changed", "HUD position has been changed" },
-                { "hud.position_invalid", "Invalid position! Use 1-5" },
-                { "hud.language_changed", "Language has been changed" }
+                { "hud.enabled", "{Green}HUD has been enabled" },
+                { "hud.disabled", "{Red}HUD has been disabled" },
+                { "hud.invalid_state", "{Red}Cannot enable HUD in current state (dead or spectator)" },
+                { "hud.position_usage", "{Green}Usage: !hudpos <1-5>" },
+                { "hud.position_help", "{Green}1:TopLeft 2:TopRight 3:BottomLeft 4:BottomRight 5:Center" },
+                { "hud.position_changed", "{Green}HUD position has been changed" },
+                { "hud.position_invalid", "{Red}Invalid position! Use 1-5" },
+                { "hud.language_changed", "{Green}Language has been changed" }
             };
         }
 
@@ -130,17 +176,19 @@ namespace InGameHUD.Managers
                 { "hud.team_ct", "CT" },
                 { "hud.team_spec", "观察者" },
 
-                { "hud.enabled", "HUD 已启用" },
-                { "hud.disabled", "HUD 已禁用" },
-                { "hud.invalid_state", "当前状态无法启用HUD（死亡或观察者）" },
-                { "hud.position_usage", "用法: !hudpos <1-5>" },
-                { "hud.position_help", "1:左上 2:右上 3:左下 4:右下 5:居中" },
-                { "hud.position_changed", "HUD 位置已更改" },
-                { "hud.position_invalid", "无效的位置! 请使用 1-5" },
-                { "hud.language_changed", "语言已更改" }
+                { "hud.enabled", "{Green}HUD 已启用" },
+                { "hud.disabled", "{Red}HUD 已禁用" },
+                { "hud.invalid_state", "{Red}当前状态无法启用HUD（死亡或观察者）" },
+                { "hud.position_usage", "{Green}用法: !hudpos <1-5>" },
+                { "hud.position_help", "{Green}1:左上 2:右上 3:左下 4:右下 5:居中" },
+                { "hud.position_changed", "{Green}HUD 位置已更改" },
+                { "hud.position_invalid", "{Red}无效的位置! 请使用 1-5" },
             };
         }
 
+        /// <summary>
+        /// 获取语言短语并应用格式化参数
+        /// </summary>
         public string GetPhrase(string key, string lang = "", params object[] args)
         {
             if (string.IsNullOrEmpty(lang))
@@ -162,6 +210,42 @@ namespace InGameHUD.Managers
                 return args.Length > 0 ? string.Format(phrase, args) : phrase;
 
             return $"[Missing: {key}]";
+        }
+
+        /// <summary>
+        /// 获取语言短语并应用格式化参数及颜色转换，用于聊天消息等
+        /// </summary>
+        public string GetColoredPhrase(string key, string lang = "", params object[] args)
+        {
+            string phrase = GetPhrase(key, lang, args);
+
+            return ProcessColorTags(phrase);
+        }
+
+        /// <summary>
+        /// 处理文本中的颜色标签，将{Color}转换为相应的聊天颜色代码
+        /// </summary>
+        private string ProcessColorTags(string text)
+        {
+            return ColorTagRegex.Replace(text, match =>
+            {
+                string colorName = match.Groups[1].Value;
+
+                try
+                {
+                    var colorPropertyInfo = typeof(ChatColors).GetProperty(colorName);
+                    if (colorPropertyInfo != null)
+                    {
+                        return colorPropertyInfo.GetValue(null)?.ToString() ?? match.Value;
+                    }
+                }
+                catch
+                {
+
+                }
+
+                return match.Value;
+            });
         }
     }
 }

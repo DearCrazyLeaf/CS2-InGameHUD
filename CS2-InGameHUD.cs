@@ -358,7 +358,7 @@ namespace InGameHUD
             bool isInvalidState = !player.PawnIsAlive || player.TeamNum == (int)CsTeam.Spectator;
             if (isInvalidState)
             {
-                player.PrintToChat($" {ChatColors.Red}{_langManager.GetPhrase("hud.invalid_state", lang)}");
+                player.PrintToChat($" {_langManager.GetColoredPhrase("hud.invalid_state", lang)}");
                 return;
             }
 
@@ -367,12 +367,12 @@ namespace InGameHUD
             if (playerData.HUDEnabled)
             {
                 UpdatePlayerHUDSync(player);
-                player.PrintToChat($" {ChatColors.Green}{_langManager.GetPhrase("hud.enabled", lang)}");
+                player.PrintToChat($" {_langManager.GetColoredPhrase("hud.enabled", lang)}");
             }
             else
             {
                 _api?.Native_GameHUD_Remove(player, MAIN_HUD_CHANNEL);
-                player.PrintToChat($" {ChatColors.Red}{_langManager.GetPhrase("hud.disabled", lang)}");
+                player.PrintToChat($" {_langManager.GetColoredPhrase("hud.disabled", lang)}");
             }
 
             SavePlayerSettingsSync(player);
@@ -393,8 +393,8 @@ namespace InGameHUD
 
             if (command.ArgCount != 1)
             {
-                player.PrintToChat($" {ChatColors.Green}{_langManager.GetPhrase("hud.position_usage", lang)}");
-                player.PrintToChat($" {ChatColors.Green}{_langManager.GetPhrase("hud.position_help", lang)}");
+                player.PrintToChat($" {_langManager.GetColoredPhrase("hud.position_usage", lang)}");
+                player.PrintToChat($" {_langManager.GetColoredPhrase("hud.position_help", lang)}");
                 return;
             }
 
@@ -408,12 +408,12 @@ namespace InGameHUD
                     UpdatePlayerHUDSync(player);
                 }
 
-                player.PrintToChat($" {ChatColors.Green}{_langManager.GetPhrase("hud.position_changed", lang)}");
+                player.PrintToChat($" {_langManager.GetColoredPhrase("hud.position_changed", lang)}");
                 SavePlayerSettingsSync(player);
             }
             else
             {
-                player.PrintToChat($" {ChatColors.Red}{_langManager.GetPhrase("hud.position_invalid", lang)}");
+                player.PrintToChat($" {_langManager.GetColoredPhrase("hud.position_invalid", lang)}");
             }
         }
 
