@@ -12,6 +12,8 @@
 
 **A customizable in-game HUD plugin for Counter-Strike 2 servers that displays various information to players in a clean, configurable format that can be positioned anywhere on the screen**
 
+![a1cb7966-3c40-419d-89bd-69b4311a025a](https://github.com/user-attachments/assets/c2ef4fc1-64f0-4421-876f-7ff6f40934eb)
+
 ## Features
 
 - **Customizable HUD Position**: Players can choose from 5 different positions (Top Left, Top Right, Bottom Left, Bottom Right, and Center)
@@ -203,6 +205,8 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
 # CS2-InGameHUD
 
 **一个用于 Counter-Strike 2 服务器的可自定义游戏内 HUD 插件，该插件以简洁、可配置的格式向玩家展示各种信息，可以放置在屏幕的任何位置**
+
+![a1cb7966-3c40-419d-89bd-69b4311a025a](https://github.com/user-attachments/assets/c2ef4fc1-64f0-4421-876f-7ff6f40934eb)
 
 ## 特性
 
