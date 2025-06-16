@@ -153,6 +153,10 @@ The plugin's configuration file (`InGameHUD.json`) contains the following settin
 
 #### Sample image source: [oqyh/cs2-Kill-Sound-GoldKingZ](https://github.com/oqyh/cs2-Kill-Sound-GoldKingZ?tab=readme-ov-file) repository (because I'm a bit lazy)
 
+[!WARNING]
+>Do not add color information to text in the announcement content or above, as those are displayed on the HUD and color codes won't work! 
+>HUD text only supports changing all text color at once, which must be set in the configuration file!
+
 ## Database Setup
 
 If you want to use MySQL to store player preferences:
@@ -327,6 +331,10 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
 ![image](https://github.com/user-attachments/assets/7471300a-d5a1-4690-81c4-25fe88ac34cd)
 
 #### 示例图片来源：[oqyh/cs2-Kill-Sound-GoldKingZ](https://github.com/oqyh/cs2-Kill-Sound-GoldKingZ?tab=readme-ov-file)仓库（因为比较懒）
+
+> [!WARNING]
+> 不要在包括公告内容及以上的所有文字前添加颜色标记，因为那些是显示在hud上的内容，不会生效！
+> HUD的文字仅支持全体更换，在配置文件中单独设置！
 
 ## 数据库设置
 
