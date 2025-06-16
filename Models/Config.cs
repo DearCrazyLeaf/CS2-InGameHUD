@@ -75,9 +75,6 @@ namespace InGameHUD.Models
 
         [JsonPropertyName("custom_data")]
         public CustomDataSettings CustomData { get; set; } = new();
-
-        [JsonPropertyName("default_language")]
-        public string DefaultLanguage { get; set; } = "en";
     }
 
     public class MySqlSettings

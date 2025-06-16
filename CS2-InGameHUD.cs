@@ -13,6 +13,7 @@ using CounterStrikeSharp.API.Core.Capabilities;
 using CS2_GameHUDAPI;
 using StoreApi;
 using Microsoft.Extensions.Hosting.Internal;
+using Microsoft.Extensions.Localization;
 
 namespace InGameHUD
 {
@@ -30,9 +31,12 @@ namespace InGameHUD
         private Dictionary<string, PlayerData> _playerCache = new();
         private DatabaseManager? _db;
         private bool _dbConnected = false;
-        private LanguageManager? _langManager;
-
+        private readonly IStringLocalizer<InGameHUD> _localizer;
         public Config Config { get; set; } = new();
+        public InGameHUD(IStringLocalizer<InGameHUD> localizer)
+        {
+            _localizer = localizer;
+        }
 
         public void OnConfigParsed(Config config)
         {
@@ -44,8 +48,6 @@ namespace InGameHUD
         {
             try
             {
-                _langManager = new LanguageManager(ModuleDirectory, Config.DefaultLanguage);
-
                 var capability = new PluginCapability<IGameHUDAPI>("gamehud:api");
                 _api = capability.Get();
 
@@ -85,7 +87,6 @@ namespace InGameHUD
                 RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
                 RegisterEventHandler<EventPlayerDeath>(OnPlayerDeath);
                 RegisterEventHandler<EventPlayerTeam>(OnPlayerTeam);
-
                 RegisterListener<Listeners.OnTick>(() =>
                 {
                     if (++_tickCounter % 320 != 0) return;
@@ -162,7 +163,6 @@ namespace InGameHUD
                 }
 
                 var (position, justify) = GetHUDPosition(playerData.HUDPosition);
-                string lang = playerData.Language;
 
                 _api?.Native_GameHUD_SetParams(
                     player,
@@ -181,28 +181,28 @@ namespace InGameHUD
 
                 var hudBuilder = new StringBuilder();
 
-                hudBuilder.AppendLine(_langManager.GetPhrase("hud.greeting", lang, player.PlayerName));
-                hudBuilder.AppendLine(_langManager.GetPhrase("hud.separator", lang));
+                hudBuilder.AppendLine(_localizer["hud.greeting", player.PlayerName]);
+                hudBuilder.AppendLine(_localizer["hud.separator"]);
 
                 if (Config.ShowTime)
                 {
-                    hudBuilder.AppendLine(_langManager.GetPhrase("hud.current_time", lang, DateTime.Now.ToString("HH:mm")));
+                    hudBuilder.AppendLine(_localizer["hud.current_time", DateTime.Now.ToString("HH:mm")]);
                 }
 
                 if (Config.ShowPing)
                 {
-                    hudBuilder.AppendLine(_langManager.GetPhrase("hud.ping", lang, player.Ping));
+                    hudBuilder.AppendLine(_localizer["hud.ping", player.Ping]);
                 }
 
                 if (Config.ShowKDA && player.ActionTrackingServices?.MatchStats != null)
                 {
                     var stats = player.ActionTrackingServices.MatchStats;
-                    hudBuilder.AppendLine(_langManager.GetPhrase("hud.kda", lang, stats.Kills, stats.Deaths, stats.Assists));
+                    hudBuilder.AppendLine(_localizer["hud.kda", stats.Kills, stats.Deaths, stats.Assists]);
                 }
 
                 if (Config.ShowHealth && player.PlayerPawn != null && player.PlayerPawn.Value != null)
                 {
-                    hudBuilder.AppendLine(_langManager.GetPhrase("hud.health", lang, player.PlayerPawn.Value.Health));
+                    hudBuilder.AppendLine(_localizer["hud.health", player.PlayerPawn.Value.Health]);
                 }
 
                 if (Config.ShowTeams)
@@ -216,12 +216,12 @@ namespace InGameHUD
                     {
                         teamKey = "hud.team_ct";
                     }
-                    hudBuilder.AppendLine(_langManager.GetPhrase("hud.team", lang, _langManager.GetPhrase(teamKey, lang)));
+                    hudBuilder.AppendLine(_localizer["hud.team", _localizer[teamKey]]);
                 }
 
                 if (Config.ShowScore)
                 {
-                    hudBuilder.AppendLine(_langManager.GetPhrase("hud.score", lang, player.Score));
+                    hudBuilder.AppendLine(_localizer["hud.score", player.Score]);
                 }
 
                 // -----------------------------------------------------------------添加自定义数据
@@ -238,7 +238,7 @@ namespace InGameHUD
 
                             playerData.CustomData["credits"] = playerCredits.ToString();
 
-                            hudBuilder.AppendLine(_langManager.GetPhrase("hud.credits", lang, playerCredits));
+                            hudBuilder.AppendLine(_localizer["hud.credits", playerCredits]);
                         }
                         else
                         {
@@ -259,14 +259,13 @@ namespace InGameHUD
                     {
                         int daysAgo = (DateTime.Now.Date - lastSignInDt.Date).Days;
                         string display = daysAgo == 0
-                            ? _langManager.GetPhrase("hud.today", lang)
-                            : _langManager.GetPhrase("hud.days_ago", lang, daysAgo);
-                        hudBuilder.AppendLine(_langManager.GetPhrase("hud.last_signin", lang, display));
+                            ? _localizer["hud.today"]
+                            : _localizer["hud.days_ago", daysAgo];
+                        hudBuilder.AppendLine(_localizer["hud.last_signin", display]);
                     }
                     else
                     {
-                        hudBuilder.AppendLine(_langManager.GetPhrase("hud.last_signin", lang,
-                            _langManager.GetPhrase("hud.never_signed", lang)));
+                        hudBuilder.AppendLine(_localizer["hud.last_signin", _localizer["hud.never_signed"]]);
                     }
                 }
 
@@ -275,24 +274,24 @@ namespace InGameHUD
                     var playtime = int.Parse(playerData.CustomData["playtime"]);
                     var hours = playtime / 3600;
                     var minutes = (playtime % 3600) / 60;
-                    hudBuilder.AppendLine(_langManager.GetPhrase("hud.playtime", lang, hours, minutes));
+                    hudBuilder.AppendLine(_localizer["hud.playtime", hours, minutes]);
                 }
                 // -----------------------------------------------------------------结束
-                hudBuilder.AppendLine(_langManager.GetPhrase("hud.separator_bottom", lang));
-                hudBuilder.AppendLine(_langManager.GetPhrase("hud.hint_toggle", lang));
-                hudBuilder.AppendLine(_langManager.GetPhrase("hud.hint_help", lang));
-                hudBuilder.AppendLine(_langManager.GetPhrase("hud.hint_store", lang));
-                hudBuilder.AppendLine(_langManager.GetPhrase("hud.hint_website", lang));
-                hudBuilder.AppendLine(_langManager.GetPhrase("hud.separator_final", lang));
+                hudBuilder.AppendLine(_localizer["hud.separator_bottom"]);
+                hudBuilder.AppendLine(_localizer["hud.hint_toggle"]);
+                hudBuilder.AppendLine(_localizer["hud.hint_help"]);
+                hudBuilder.AppendLine(_localizer["hud.hint_store"]);
+                hudBuilder.AppendLine(_localizer["hud.hint_website"]);
+                hudBuilder.AppendLine(_localizer["hud.separator_final"]);
 
                 if (Config.ShowAnnouncementTitle)
                 {
-                    hudBuilder.AppendLine(_langManager.GetPhrase("hud.announcement_title", lang));
+                    hudBuilder.AppendLine(_localizer["hud.announcement_title"]);
                 }
 
                 if (Config.ShowAnnouncement)
                 {
-                    hudBuilder.AppendLine(_langManager.GetPhrase("hud.announcement_content", lang));
+                    hudBuilder.AppendLine(_localizer["hud.announcement_content"]);
                 }
 
                 _api?.Native_GameHUD_ShowPermanent(player, MAIN_HUD_CHANNEL, hudBuilder.ToString());
@@ -353,12 +352,10 @@ namespace InGameHUD
                 _playerCache[steamId] = playerData;
             }
 
-            string lang = playerData.Language;
-
             bool isInvalidState = !player.PawnIsAlive || player.TeamNum == (int)CsTeam.Spectator;
             if (isInvalidState)
             {
-                player.PrintToChat($" {_langManager.GetColoredPhrase("hud.invalid_state", lang)}");
+                player.PrintToChat(_localizer["hud.invalid_state"]);
                 return;
             }
 
@@ -367,12 +364,12 @@ namespace InGameHUD
             if (playerData.HUDEnabled)
             {
                 UpdatePlayerHUDSync(player);
-                player.PrintToChat($" {_langManager.GetColoredPhrase("hud.enabled", lang)}");
+                player.PrintToChat(_localizer["hud.enabled"]);
             }
             else
             {
                 _api?.Native_GameHUD_Remove(player, MAIN_HUD_CHANNEL);
-                player.PrintToChat($" {_langManager.GetColoredPhrase("hud.disabled", lang)}");
+                player.PrintToChat(_localizer["hud.disabled"]);
             }
 
             SavePlayerSettingsSync(player);
@@ -389,12 +386,10 @@ namespace InGameHUD
                 _playerCache[steamId] = playerData;
             }
 
-            string lang = playerData.Language;
-
             if (command.ArgCount != 1)
             {
-                player.PrintToChat($" {_langManager.GetColoredPhrase("hud.position_usage", lang)}");
-                player.PrintToChat($" {_langManager.GetColoredPhrase("hud.position_help", lang)}");
+                player.PrintToChat(_localizer["hud.position_usage"]);
+                player.PrintToChat(_localizer["hud.position_help"]);
                 return;
             }
 
@@ -408,12 +403,12 @@ namespace InGameHUD
                     UpdatePlayerHUDSync(player);
                 }
 
-                player.PrintToChat($" {_langManager.GetColoredPhrase("hud.position_changed", lang)}");
+                player.PrintToChat(_localizer["hud.position_changed"]);
                 SavePlayerSettingsSync(player);
             }
             else
             {
-                player.PrintToChat($" {_langManager.GetColoredPhrase("hud.position_invalid", lang)}");
+                player.PrintToChat(_localizer["hud.position_invalid"]);
             }
         }
 
