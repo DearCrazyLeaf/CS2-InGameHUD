@@ -209,7 +209,8 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
 
 ---
 
-# 中文版介绍
+# 中文版介绍 
+### >[中文论坛帖子](https://bbs.csgocn.net/thread-1029.htm)<
 
 # CS2-InGameHUD
 
