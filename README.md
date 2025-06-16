@@ -10,18 +10,23 @@
 
 # CS2-InGameHUD
 
-**A customizable in-game HUD plugin for Counter-Strike 2 servers. This plugin displays various information to players in a clean, configurable format that can be positioned anywhere on the screen.**
+**A customizable in-game HUD plugin for Counter-Strike 2 servers that displays various information to players in a clean, configurable format that can be positioned anywhere on the screen**
 
 ## Features
 
 - **Customizable HUD Position**: Players can choose from 5 different positions (Top Left, Top Right, Bottom Left, Bottom Right, and Center)
 - **Toggleable Display**: Players can turn the HUD on or off with a simple command
-- **Multi-Platform Support**: Compatible with both Windows and Linux CS2 servers
 - **MySQL Integration**: Store player preferences and custom data
 - **Localization Support**: Easy to translate to any language
 - **Player Statistics**: Display ping, KDA, health, team, and more
 - **Admin Announcements**: Server admins can display announcements to all players
 - **Custom Data Support**: Show credits (with Store API integration), playtime, last sign-in date, and more
+
+> [!WARNING]
+> Since this is targeted development, credits display only works with schwarper/cs2-store plugin system!
+> If you're not using this plugin, credit display is disabled by default in the HUD configuration file!
+> Additionally, the last sign-in time display is customized for our own sign-in system!
+> You can modify these custom content items to display other information as needed, please see the custom content description for details!
 
 ## Requirements
 
@@ -32,7 +37,7 @@
 
 ## Installation
 
-1. Download the latest release for your server platform (Windows/Linux)
+1. Download the latest release
 2. Extract the contents to your CS2 server's `game/csgo/addons/counterstrikesharp/plugins` directory
 3. Configure the plugin settings in `addons/counterstrikesharp/configs/plugins/InGameHUD/InGameHUD.json`
 4. Restart your server or load the plugin
@@ -43,45 +48,110 @@ The plugin's configuration file (`InGameHUD.json`) contains the following settin
 
 ```json
 {
-  "version": 1,                      // Don't change this - 请勿修改此值
-  "font_size": 50,                   // Your font size - 字体大小
-  "font_name": "Arial Bold",         // Font family name - 字体名称
-  "scale": 0.1,                      // Overall HUD scale - HUD整体缩放比例
-  "background_opacity": 0.6,         // Background transparency (0-1) - 背景透明度(0-1)
-  "background_scale": 0.3,           // Background size relative to content - 背景相对内容的大小
-  "show_kda": true,                  // Display kills/deaths/assists - 显示击杀/死亡/助攻
-  "show_health": true,               // Display player health - 显示玩家生命值
-  "show_team": true,                 // Display team information - 显示队伍信息
-  "show_time": true,                 // Display current time - 显示当前时间
-  "show_ping": true,                 // Display player ping - 显示玩家延迟
-  "show_score": true,                // Display team scores - 显示队伍比分
-  "show_announcement_title": true,   // Display announcement title - 显示公告标题
-  "show_announcement": true,         // Display announcement content - 显示公告内容
-  "text_color": "Orange",            // HUD text color - HUD文字颜色
-  "mysql_connection": {              // MySQL database configuration - MySQL数据库配置
-    "host": "",                      // Database hostname or IP - 数据库主机名或IP
-    "port": 3306,                    // Database port - 数据库端口
-    "database": "",                  // Database name - 数据库名称
-    "username": "",                  // Database user - 数据库用户名
-    "password": ""                   // Database password - 数据库密码
+  "version": 1,                      // Don't change this
+  "font_size": 50,                   // Your font size
+  "font_name": "Arial Bold",         // Font family name
+  "scale": 0.1,                      // Overall HUD scale
+  "background_opacity": 0.6,         // Background transparency (0-1)
+  "background_scale": 0.3,           // Background size relative to content
+  "show_kda": true,                  // Display kills/deaths/assists
+  "show_health": true,               // Display player health
+  "show_team": true,                 // Display team information
+  "show_time": true,                 // Display current time
+  "show_ping": true,                 // Display player ping
+  "show_score": true,                // Display team scores
+  "show_announcement_title": true,   // Display announcement title
+  "show_announcement": true,         // Display announcement content
+  "text_color": "Orange",            // HUD text color
+  "mysql_connection": {              // MySQL database configuration
+    "host": "",                      // Database hostname or IP
+    "port": 3306,                    // Database port
+    "database": "",                  // Database name
+    "username": "",                  // Database user
+    "password": ""                   // Database password
   },
-  "custom_data": {                   // Custom data display settings - 自定义数据显示设置
-    "credits": {                     // Store credits display - 商店点数显示
-      "enabled": true                // Enable/disable credits display - 启用/禁用点数显示
+  "custom_data": {                   // Custom data display settings
+    "credits": {                     // Store credits display (requires schwarper/cs2-store system, disabled by default)
+      "enabled": true                // Enable/disable credits display
     },
-    "playtime": {                    // Player playtime display - 玩家游戏时长显示
-      "enabled": true,               // Enable/disable playtime display - 启用/禁用游戏时长显示
-      "table_name": "time_table",    // Database table name for playtime - 游戏时长数据表名
-      "column_name": "time"          // Database column name for playtime - 游戏时长字段名
+    "playtime": {                    // Player playtime display (customized, see custom content section to modify if you don't have this system)
+      "enabled": true,               // Enable/disable playtime display
+      "table_name": "time_table",    // Database table name for playtime
+      "column_name": "time"          // Database column name for playtime
     },
-    "signin": {                      // Last sign-in display - 上次签到显示
-      "enabled": true,               // Enable/disable sign-in display - 启用/禁用签到显示
-      "table_name": "signin_table",  // Database table for sign-in records - 签到记录数据表名
-      "column_name": "signin_time"   // Database column for sign-in timestamp - 签到时间字段名
+    "signin": {                      // Last sign-in display (customized, see custom content section to modify if you don't have this system)
+      "enabled": true,               // Enable/disable sign-in display
+      "table_name": "signin_table",  // Database table for sign-in records
+      "column_name": "signin_time"   // Database column for sign-in timestamp
     }
   }
 }
 ```
+
+## Custom Content Module
+
+### This is a special module system for retrieving specific content from database tables to display corresponding information. Here's a detailed description:
+#### Current module development is very limited; you can add your own desired functionality and submit Pull requests, or clone it for personal use
+
+| Parameter              | Description                                                                 |
+|------------------------|-----------------------------------------------------------------------------|
+| `credits`              | Credits display module, developed only for schwarper/cs2-store system, displays player's store credits |
+| `playtime`             | Playtime module, developed only for k4system, displays player's game time recorded in k4system |
+| `signin`               | Recent sign-in time module, developed only for our sign-in system, displays most recent sign-in time |
+| `enabled`              | Whether to enable display, `true` enables, `false` disables. Note: using these features requires properly set tables and database connection! |
+| `table_name`           | Target table name to retrieve data from |
+| `column_name`          | Target column name (field) to retrieve data from |
+
+### How to use this module
+- The module's design logic is to retrieve the current player's `steamid`, match it with your specified table name and column name, get the corresponding player data from that table's column, and display it with a custom title through the language file. Currently, only two parameter types are provided: time and date.
+- Currently, only `playtime` and `signin` modules can be modified, with limitations due to targeted development.
+- In `playtime`, the table's `steamid` field name must be `steam_id`, and the data must be in seconds. The calculation method automatically converts it to `n hours n minutes` and prints it on the HUD.
+- In `signin`, the table's `steamid` field name must be `steamid64`, and the data must be in standard date format. The calculation method computes the difference between the retrieved data and the query time, retaining only the day parameter difference, and finally displays `n days ago` or `today`.
+- After modifying these parameters and correctly matching column names, please modify the language file at `...\addons\counterstrikesharp\plugins\CS2-InGameHUD\lang`. For example, for `en`:
+
+```json
+{
+  "hud.greeting": "Hello! [{0}]",
+  "hud.separator": "===================",
+  "hud.current_time": "Current Time: {0}",
+  "hud.ping": "Ping: {0} ms",
+  "hud.kda": "KDA: {0}/{1}/{2}",
+  "hud.health": "Health: {0}",
+  "hud.team": "Team: {0}",
+  "hud.score": "Score: {0}",
+  "hud.credits": "Credits: {0}",
+  "hud.last_signin": "Last Sign-in: {0}",     // Change "Last Sign-in" to your desired title to adapt to data retrieved from your table. Don't modify {0}!
+  "hud.never_signed": "Never signed in or data anomaly",
+  "hud.today": "Today",
+  "hud.days_ago": "{0} days ago",
+  "hud.playtime": "Playtime: {0}h {1}m",      // Change "Playtime" to your desired title to adapt to data retrieved from your table. Don't modify {0}{1}!
+  "hud.separator_bottom": "===================",
+  "hud.hint_toggle": "Custom message, you can write, !hud to toggle panel",
+  "hud.hint_help": "Custom message, you can write, !help for help",
+  "hud.hint_store": "Custom message, you can write, !store to open shop",
+  "hud.hint_website": "Custom message, preset for website.",
+  "hud.separator_final": "===================",
+  "hud.announcement_title": "[ANNOUNCEMENT TITLE]",
+  "hud.announcement_content": "Announcement content 1\nAnnouncement content 2\nAnnouncement content 3\nAnd so on",  // \n is a newline character
+  "hud.team_t": "T",
+  "hud.team_ct": "CT",
+  "hud.team_spec": "Spectator",
+  "hud.enabled": "{White}HUD {Lime}Enabled{White}!",
+  "hud.disabled": "{White}HUD {Lime}Disabled{White}!",
+  "hud.invalid_state": "{Red}Cannot enable HUD in current state (dead or spectating)!",
+  "hud.position_usage": "{White}Usage: {Lime}!hudpos {White}<{Lime}1-5{White}>",
+  "hud.position_help": "{Lime}1{White}:TopLeft  {Lime}2{White}:TopRight  {Lime}3{White}:BottomLeft  {Lime}4{White}:BottomRight  {Lime}5{White}:Center",
+  "hud.position_changed": "{White}HUD position {Lime}changed{White}!",
+  "hud.position_invalid": "{White}Invalid position! Please use {Lime}1-5{White}!"
+}
+```
+- Change "Last Sign-in" to your desired title to adapt to data retrieved from your table. Don't modify `{0}`!
+- Change "Playtime" to your desired title to adapt to data retrieved from your table. Don't modify `{0}` `{1}`!
+- You can investigate how to modify other custom content (such as ping, KDA, team, etc., but do not modify the numbers after them, as these are parameter content!). Supports CounterStrikeSharp's native color display:
+
+![image](https://github.com/user-attachments/assets/7471300a-d5a1-4690-81c4-25fe88ac34cd)
+
+#### Sample image source: [oqyh/cs2-Kill-Sound-GoldKingZ](https://github.com/oqyh/cs2-Kill-Sound-GoldKingZ?tab=readme-ov-file) repository (because I'm a bit lazy)
 
 ## Database Setup
 
@@ -103,7 +173,7 @@ If you want to use MySQL to store player preferences:
 
 ## Contributing
 
-Feel free to submit issues or pull requests if you have suggestions, bug reports, or improvements.
+Feel free to submit issues or pull requests if you have any questions, suggestions, or would like to contribute to the project.
 
 ## License
 
