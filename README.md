@@ -36,10 +36,6 @@
 > Due to the tricky logic of HUD display, I have no clue how to make it adapt to different resolutions.
 > I can only use hard-coded presets to adjust suitable positions.
 > If anyone can add resolution support to the plugin so that these presets work properly under different aspect ratios, please submit a Pull request to the repository! Thank you very much!
-> # 需要帮助！
-> 需要Hud的分辨率适配，
-> 因为Hud显示逻辑比较刁钻，我没有一点头绪给它做分辨率适配，只能用内部写死的预设来调整合适的位置，
-> 如果有任何人可以给插件添加一个分辨率支持，使得不同比例下的分辨率可以正常使用这些预设，请向仓库提交Pull request！非常感谢！
 
 ## Requirements
 
@@ -222,6 +218,12 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
 > 如果你没有在使用该插件，本HUD配置文件中默认关闭积分显示！
 > 此外，对于上次签到时间的显示，这是对于适配我们自己开发的签到系统而定制的！
 > 你可以修改这些自定义内容为其他想要显示的东西，具体请查看自定义内容介绍！
+
+> [!NOTE]
+> # 需要帮助！
+> 需要Hud的分辨率适配，
+> 因为Hud显示逻辑比较刁钻，我没有一点头绪给它做分辨率适配，只能用内部写死的预设来调整合适的位置，
+> 如果有任何人可以给插件添加一个分辨率支持，使得不同比例下的分辨率可以正常使用这些预设，请向仓库提交Pull request！非常感谢！ 
 
 ## 要求
 
