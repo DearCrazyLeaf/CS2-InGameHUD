@@ -11,19 +11,19 @@ namespace InGameHUD.Models
         public int Version { get; set; } = 1;
 
         [JsonPropertyName("font_size")]
-        public int FontSize { get; set; } = 50;
+        public int FontSize { get; set; } = 20;
 
         [JsonPropertyName("font_name")]
         public string FontName { get; set; } = "Arial Bold";
 
         [JsonPropertyName("scale")]
-        public float Scale { get; set; } = 0.1f;
+        public float Scale { get; set; } = 0.08f;
 
         [JsonPropertyName("background_opacity")]
-        public float BackgroundOpacity { get; set; } = 0.6f;
+        public float BackgroundOpacity { get; set; } = 0.2f;
 
         [JsonPropertyName("background_scale")]
-        public float BackgroundScale { get; set; } = 0.3f;
+        public float BackgroundScale { get; set; } = 0.1f;
 
         [JsonPropertyName("show_kda")]
         public bool ShowKDA { get; set; } = true;
@@ -75,6 +75,27 @@ namespace InGameHUD.Models
 
         [JsonPropertyName("custom_data")]
         public CustomDataSettings CustomData { get; set; } = new();
+
+        [JsonPropertyName("positions")]
+        public PositionsSettings Positions { get; set; } = new();
+    }
+
+    public class PositionsSettings
+    {
+        [JsonPropertyName("TopLeft")]
+        public PositionConfig TopLeft { get; set; } = new PositionConfig(-30, 5, 50);
+
+        [JsonPropertyName("TopRight")]
+        public PositionConfig TopRight { get; set; } = new PositionConfig(30, 5, 50);
+
+        [JsonPropertyName("BottomLeft")]
+        public PositionConfig BottomLeft { get; set; } = new PositionConfig(-30, -5, 50);
+
+        [JsonPropertyName("BottomRight")]
+        public PositionConfig BottomRight { get; set; } = new PositionConfig(30, -5, 50);
+
+        [JsonPropertyName("Center")]
+        public PositionConfig Center { get; set; } = new PositionConfig(0, 0, 50);
     }
 
     public class MySqlSettings
