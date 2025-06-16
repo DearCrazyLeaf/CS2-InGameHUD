@@ -1,27 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	
- <PropertyGroup>
-	<TargetFramework>net8.0</TargetFramework>
-	<ImplicitUsings>enable</ImplicitUsings>
-	<Nullable>enable</Nullable>
-	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-	<GenerateDocumentationFile>true</GenerateDocumentationFile>
-	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	<Authors>DearCrazyLeaf</Authors>
-	<Version>1.0.0</Version>
- </PropertyGroup>
+  
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Authors>DearCrazyLeaf</Authors>
+    <Version>1.0.0</Version>
+    <RuntimeIdentifiers>win-x64;linux-x64</RuntimeIdentifiers>
+  </PropertyGroup>
 
-	<ItemGroup>
-	  <PackageReference Include="CounterStrikeSharp.API" Version="1.0.318" />
-	  <PackageReference Include="MySqlConnector" Version="2.3.3" />
-	  <Reference Include="CS2-GameHUDAPI" />
-	  <Reference Include="StoreApi" />
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="CounterStrikeSharp.API" Version="1.0.318" />
+    <PackageReference Include="MySqlConnector" Version="2.3.3" />
+    <Reference Include="CS2-GameHUDAPI" />
+    <Reference Include="StoreApi" />
+  </ItemGroup>
 
-	<ItemGroup>
-	  <None Update="lang\**\*.json">
-		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	</ItemGroup>
+  <ItemGroup>
+    <None Update="lang\**\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>
