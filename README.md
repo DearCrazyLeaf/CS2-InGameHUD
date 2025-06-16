@@ -1,9 +1,9 @@
 <div>
     <a href="#中文版介绍" style="margin-left: 0; text-decoration: none;"><img src="https://img.shields.io/badge/跳转到中文版-中文介绍-red?style=for-the-badge&logo=gitbook&logoColor=white" alt="中文介绍"></a>
     <a href="https://www.gnu.org/licenses/gpl-3.0.txt" target="_blank" style="margin-left: 10px; text-decoration: none;"><img src="https://img.shields.io/badge/License-GPL%203.0-orange?style=for-the-badge&logo=gnu" alt="GPL v3 License"></a>
-    <a href="https://github.com/DearCrazyLeaf/CS2-InGameHUD/issues" target="_blank" style="margin-left: 10px; text-decoration: none;"><img src="https://img.shields.io/github/issues/DearCrazyLeaf/CS2-InGameHUD?style=for-the-badge&logo=github" alt="Issues"></a>
-    <a href="https://github.com/DearCrazyLeaf/CS2-InGameHUD/stargazers" target="_blank" style="margin-left: 10px; text-decoration: none;"><img src="https://img.shields.io/github/stars/DearCrazyLeaf/CS2-InGameHUD?style=for-the-badge&logo=github" alt="Stars"></a>
-    <a href="https://github.com/DearCrazyLeaf/CS2-InGameHUD/pulls" target="_blank" style="margin-left: 10px; text-decoration: none;"><img src="https://img.shields.io/github/issues-pr/DearCrazyLeaf/CS2-InGameHUD?style=for-the-badge&logo=git" alt="Pull Requests"></a>
+    <a href="https://github.com/DearCrazyLeaf/CS2-InGameHUD/issues" target="_blank" style="margin-left: 5px; text-decoration: none;"><img src="https://img.shields.io/github/issues/DearCrazyLeaf/CS2-InGameHUD?style=for-the-badge&logo=target" alt="Issues"></a>
+    <a href="https://github.com/DearCrazyLeaf/CS2-InGameHUD/stargazers" target="_blank" style="margin-left: 5px; text-decoration: none;"><img src="https://img.shields.io/github/stars/DearCrazyLeaf/CS2-InGameHUD?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="Stars"></a>
+    <a href="https://github.com/DearCrazyLeaf/CS2-InGameHUD/pulls" target="_blank" style="margin-left: 5px; text-decoration: none;"><img src="https://img.shields.io/github/issues-pr/DearCrazyLeaf/CS2-InGameHUD?style=for-the-badge&logo=git" alt="Pull Requests"></a>
 </div>
 
 ---
@@ -43,41 +43,41 @@ The plugin's configuration file (`InGameHUD.json`) contains the following settin
 
 ```json
 {
-  "version": 1,
-  "font_size": 50,
-  "font_name": "Arial Bold",
-  "scale": 0.1,
-  "background_opacity": 0.6,
-  "background_scale": 0.3,
-  "show_kda": true,
-  "show_health": true,
-  "show_team": true,
-  "show_time": true,
-  "show_ping": true,
-  "show_score": true,
-  "show_announcement_title": true,
-  "show_announcement": true,
-  "text_color": "Orange",
-  "mysql_connection": {
-    "host": "",
-    "port": ,
-    "database": "",
-    "username": "",
-    "password": ""
+  "version": 1,                      // Don't change this - 请勿修改此值
+  "font_size": 50,                   // Your font size - 字体大小
+  "font_name": "Arial Bold",         // Font family name - 字体名称
+  "scale": 0.1,                      // Overall HUD scale - HUD整体缩放比例
+  "background_opacity": 0.6,         // Background transparency (0-1) - 背景透明度(0-1)
+  "background_scale": 0.3,           // Background size relative to content - 背景相对内容的大小
+  "show_kda": true,                  // Display kills/deaths/assists - 显示击杀/死亡/助攻
+  "show_health": true,               // Display player health - 显示玩家生命值
+  "show_team": true,                 // Display team information - 显示队伍信息
+  "show_time": true,                 // Display current time - 显示当前时间
+  "show_ping": true,                 // Display player ping - 显示玩家延迟
+  "show_score": true,                // Display team scores - 显示队伍比分
+  "show_announcement_title": true,   // Display announcement title - 显示公告标题
+  "show_announcement": true,         // Display announcement content - 显示公告内容
+  "text_color": "Orange",            // HUD text color - HUD文字颜色
+  "mysql_connection": {              // MySQL database configuration - MySQL数据库配置
+    "host": "",                      // Database hostname or IP - 数据库主机名或IP
+    "port": 3306,                    // Database port - 数据库端口
+    "database": "",                  // Database name - 数据库名称
+    "username": "",                  // Database user - 数据库用户名
+    "password": ""                   // Database password - 数据库密码
   },
-  "custom_data": {
-    "credits": {
-      "enabled": true
+  "custom_data": {                   // Custom data display settings - 自定义数据显示设置
+    "credits": {                     // Store credits display - 商店点数显示
+      "enabled": true                // Enable/disable credits display - 启用/禁用点数显示
     },
-    "playtime": {
-      "enabled": true,
-      "table_name": "time_table",
-      "column_name": "time"
+    "playtime": {                    // Player playtime display - 玩家游戏时长显示
+      "enabled": true,               // Enable/disable playtime display - 启用/禁用游戏时长显示
+      "table_name": "time_table",    // Database table name for playtime - 游戏时长数据表名
+      "column_name": "time"          // Database column name for playtime - 游戏时长字段名
     },
-    "signin": {
-      "enabled": true,
-      "table_name": "signin_table",
-      "column_name": "signin_time"
+    "signin": {                      // Last sign-in display - 上次签到显示
+      "enabled": true,               // Enable/disable sign-in display - 启用/禁用签到显示
+      "table_name": "signin_table",  // Database table for sign-in records - 签到记录数据表名
+      "column_name": "signin_time"   // Database column for sign-in timestamp - 签到时间字段名
     }
   }
 }
@@ -150,41 +150,41 @@ Feel free to submit issues or pull requests if you have suggestions, bug reports
 
 ```json
 {
-  "version": 1,
-  "font_size": 50,
-  "font_name": "Arial Bold",
-  "scale": 0.1,
-  "background_opacity": 0.6,
-  "background_scale": 0.3,
-  "show_kda": true,
-  "show_health": true,
-  "show_team": true,
-  "show_time": true,
-  "show_ping": true,
-  "show_score": true,
-  "show_announcement_title": true,
-  "show_announcement": true,
-  "text_color": "Orange",
-  "mysql_connection": {
-    "host": "",
-    "port": ,
-    "database": "",
-    "username": "",
-    "password": ""
+  "version": 1,                      // Don't change this - 请勿修改此值
+  "font_size": 50,                   // Your font size - 字体大小
+  "font_name": "Arial Bold",         // Font family name - 字体名称
+  "scale": 0.1,                      // Overall HUD scale - HUD整体缩放比例
+  "background_opacity": 0.6,         // Background transparency (0-1) - 背景透明度(0-1)
+  "background_scale": 0.3,           // Background size relative to content - 背景相对内容的大小
+  "show_kda": true,                  // Display kills/deaths/assists - 显示击杀/死亡/助攻
+  "show_health": true,               // Display player health - 显示玩家生命值
+  "show_team": true,                 // Display team information - 显示队伍信息
+  "show_time": true,                 // Display current time - 显示当前时间
+  "show_ping": true,                 // Display player ping - 显示玩家延迟
+  "show_score": true,                // Display team scores - 显示队伍比分
+  "show_announcement_title": true,   // Display announcement title - 显示公告标题
+  "show_announcement": true,         // Display announcement content - 显示公告内容
+  "text_color": "Orange",            // HUD text color - HUD文字颜色
+  "mysql_connection": {              // MySQL database configuration - MySQL数据库配置
+    "host": "",                      // Database hostname or IP - 数据库主机名或IP
+    "port": 3306,                    // Database port - 数据库端口
+    "database": "",                  // Database name - 数据库名称
+    "username": "",                  // Database user - 数据库用户名
+    "password": ""                   // Database password - 数据库密码
   },
-  "custom_data": {
-    "credits": {
-      "enabled": true
+  "custom_data": {                   // Custom data display settings - 自定义数据显示设置
+    "credits": {                     // Store credits display - 商店点数显示
+      "enabled": true                // Enable/disable credits display - 启用/禁用点数显示
     },
-    "playtime": {
-      "enabled": true,
-      "table_name": "time_table",
-      "column_name": "time"
+    "playtime": {                    // Player playtime display - 玩家游戏时长显示
+      "enabled": true,               // Enable/disable playtime display - 启用/禁用游戏时长显示
+      "table_name": "time_table",    // Database table name for playtime - 游戏时长数据表名
+      "column_name": "time"          // Database column name for playtime - 游戏时长字段名
     },
-    "signin": {
-      "enabled": true,
-      "table_name": "signin_table",
-      "column_name": "signin_time"
+    "signin": {                      // Last sign-in display - 上次签到显示
+      "enabled": true,               // Enable/disable sign-in display - 启用/禁用签到显示
+      "table_name": "signin_table",  // Database table for sign-in records - 签到记录数据表名
+      "column_name": "signin_time"   // Database column for sign-in timestamp - 签到时间字段名
     }
   }
 }
