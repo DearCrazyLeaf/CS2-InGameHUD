@@ -34,19 +34,15 @@ namespace InGameHUD.Models
         [JsonPropertyName("show_team")]
         public bool ShowTeams { get; set; } = true;
 
-        // 新增：是否显示当前系统时间
         [JsonPropertyName("show_time")]
         public bool ShowTime { get; set; } = true;
 
-        // 新增：是否显示玩家 Ping
         [JsonPropertyName("show_ping")]
         public bool ShowPing { get; set; } = true;
 
-        // 新增：是否显示玩家得分（积分）
         [JsonPropertyName("show_score")]
         public bool ShowScore { get; set; } = true;
 
-        // 新增：是否显示自定义公告信息
         [JsonPropertyName("show_announcement_title")]
         public bool ShowAnnouncementTitle { get; set; } = true;
 
@@ -64,7 +60,6 @@ namespace InGameHUD.Models
                 _textColorName = value;
                 try
                 {
-                    // 尝试将字符串转换为Color对象，验证颜色名称是否有效
                     _ = Color.FromName(value);
                 }
                 catch
@@ -82,7 +77,7 @@ namespace InGameHUD.Models
         public CustomDataSettings CustomData { get; set; } = new();
 
         [JsonPropertyName("default_language")]
-        public string DefaultLanguage { get; set; } = "zh";
+        public string DefaultLanguage { get; set; } = "zh-Hans";
     }
 
     public class MySqlSettings
