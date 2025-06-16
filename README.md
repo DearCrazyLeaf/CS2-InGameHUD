@@ -160,7 +160,7 @@ The plugin's configuration file (`InGameHUD.json`) contains the following settin
 
 ![image](https://github.com/user-attachments/assets/7471300a-d5a1-4690-81c4-25fe88ac34cd)
 
-#### Sample image from: [oqyh/cs2-Kill-Sound-GoldKingZ](https://github.com/oqyh/cs2-Kill-Sound-GoldKingZ?tab=readme-ov-file) 's repository (because I'm a bit lazy)
+#### Sample image from [oqyh/cs2-Kill-Sound-GoldKingZ](https://github.com/oqyh/cs2-Kill-Sound-GoldKingZ?tab=readme-ov-file) 's repository (because I'm a bit lazy)
 
 > [!WARNING]
 > Do not add color information to text in the announcement content or above, as those are displayed on the HUD and color codes won't work! 
@@ -347,7 +347,7 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
 
 ![image](https://github.com/user-attachments/assets/7471300a-d5a1-4690-81c4-25fe88ac34cd)
 
-#### 示例图片来源：[oqyh/cs2-Kill-Sound-GoldKingZ](https://github.com/oqyh/cs2-Kill-Sound-GoldKingZ?tab=readme-ov-file) 的仓库（因为比较懒）
+#### 示例图片来自 [oqyh/cs2-Kill-Sound-GoldKingZ](https://github.com/oqyh/cs2-Kill-Sound-GoldKingZ?tab=readme-ov-file) 的仓库（因为比较懒）
 
 > [!WARNING]
 > 不要在包括公告内容及以上的所有文字前添加颜色标记，因为那些是显示在hud上的内容，不会生效！
