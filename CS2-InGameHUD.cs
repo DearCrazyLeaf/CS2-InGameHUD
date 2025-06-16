@@ -162,17 +162,40 @@ namespace InGameHUD
                     playerData.CustomData = customDataTask.Result;
                 }
 
-                var (position, justify) = GetHUDPosition(playerData.HUDPosition);
+                // 获取原始HUD位置和水平对齐方式
+                var (basePosition, justifyHorizontal) = GetHUDPosition(playerData.HUDPosition);
 
+                // ====== 修改部分开始: 计算自适应位置调整 ======
+                // 计算自适应调整因子
+                // 基准值
+                const float BASE_FONT_SIZE = 50.0f;  // 默认字体大小
+                const float BASE_SCALE = 0.1f;       // 默认缩放值
+
+                // 计算字体大小和缩放的比例
+                float fontFactor = Config.FontSize / BASE_FONT_SIZE;
+                float scaleFactor = BASE_SCALE / Config.Scale;
+
+                // 调整因子，当字体变大或缩放变小时，调整因子>1，位置值需要除以更大的数
+                float adjustmentFactor = fontFactor * scaleFactor;
+
+                // 调整后的位置向量 (Z轴保持不变)
+                Vector adjustedPosition = new Vector(
+                    basePosition.X / adjustmentFactor,  // X轴调整
+                    basePosition.Y / adjustmentFactor,  // Y轴调整
+                    basePosition.Z                      // Z轴保持不变
+                );
+                // ====== 修改部分结束 ======
+
+                // 使用调整后的位置而不是原始位置
                 _api?.Native_GameHUD_SetParams(
                     player,
                     MAIN_HUD_CHANNEL,
-                    position,
+                    adjustedPosition, // 使用调整后的位置
                     Color.FromName(Config.TextColor),
                     Config.FontSize,
                     Config.FontName,
                     Config.Scale,
-                    justify,
+                    justifyHorizontal,
                     PointWorldTextJustifyVertical_t.POINT_WORLD_TEXT_JUSTIFY_VERTICAL_CENTER,
                     PointWorldTextReorientMode_t.POINT_WORLD_TEXT_REORIENT_NONE,
                     Config.BackgroundScale,
@@ -474,15 +497,41 @@ namespace InGameHUD
 
         private (Vector, PointWorldTextJustifyHorizontal_t) GetHUDPosition(HUDPosition position)
         {
-            return position switch
+            // 获取原始HUD位置和水平对齐方式
+            PositionConfig baseConfig;
+            PointWorldTextJustifyHorizontal_t justification;
+
+            // 根据位置预设获取基础配置和对齐方式
+            switch (position)
             {
-                HUDPosition.TopLeft => (new Vector(25, 90, 70), PointWorldTextJustifyHorizontal_t.POINT_WORLD_TEXT_JUSTIFY_HORIZONTAL_LEFT),
-                HUDPosition.TopRight => (new Vector(65, 10, 70), PointWorldTextJustifyHorizontal_t.POINT_WORLD_TEXT_JUSTIFY_HORIZONTAL_RIGHT),
-                HUDPosition.BottomLeft => (new Vector(65, 90, 70), PointWorldTextJustifyHorizontal_t.POINT_WORLD_TEXT_JUSTIFY_HORIZONTAL_LEFT),
-                HUDPosition.BottomRight => (new Vector(25, 10, 70), PointWorldTextJustifyHorizontal_t.POINT_WORLD_TEXT_JUSTIFY_HORIZONTAL_RIGHT),
-                HUDPosition.Center => (new Vector(50, 50, 70), PointWorldTextJustifyHorizontal_t.POINT_WORLD_TEXT_JUSTIFY_HORIZONTAL_CENTER),
-                _ => (new Vector(65, 10, 70), PointWorldTextJustifyHorizontal_t.POINT_WORLD_TEXT_JUSTIFY_HORIZONTAL_RIGHT)
-            };
+                case HUDPosition.TopLeft:
+                    baseConfig = Config.Positions.TopLeft;
+                    justification = PointWorldTextJustifyHorizontal_t.POINT_WORLD_TEXT_JUSTIFY_HORIZONTAL_LEFT;
+                    break;
+                case HUDPosition.TopRight:
+                    baseConfig = Config.Positions.TopRight;
+                    justification = PointWorldTextJustifyHorizontal_t.POINT_WORLD_TEXT_JUSTIFY_HORIZONTAL_RIGHT;
+                    break;
+                case HUDPosition.BottomLeft:
+                    baseConfig = Config.Positions.BottomLeft;
+                    justification = PointWorldTextJustifyHorizontal_t.POINT_WORLD_TEXT_JUSTIFY_HORIZONTAL_LEFT;
+                    break;
+                case HUDPosition.BottomRight:
+                    baseConfig = Config.Positions.BottomRight;
+                    justification = PointWorldTextJustifyHorizontal_t.POINT_WORLD_TEXT_JUSTIFY_HORIZONTAL_RIGHT;
+                    break;
+                case HUDPosition.Center:
+                    baseConfig = Config.Positions.Center;
+                    justification = PointWorldTextJustifyHorizontal_t.POINT_WORLD_TEXT_JUSTIFY_HORIZONTAL_CENTER;
+                    break;
+                default:
+                    baseConfig = Config.Positions.TopRight;
+                    justification = PointWorldTextJustifyHorizontal_t.POINT_WORLD_TEXT_JUSTIFY_HORIZONTAL_RIGHT;
+                    break;
+            }
+
+            // 返回原始位置和对齐方式 (自适应调整将在UpdatePlayerHUDSync中处理)
+            return (new Vector(baseConfig.XOffset, baseConfig.YOffset, baseConfig.ZDistance), justification);
         }
 
         public override void Unload(bool hotReload)
