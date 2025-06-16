@@ -220,12 +220,19 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
 ## 特性
 
 - **自定义 HUD 位置**：玩家可以从 5 种不同位置中选择（左上角、右上角、左下角、右下角和中心）
+
 - **可切换显示**：玩家可以使用简单的命令打开或关闭 HUD
+
 - **MySQL 集成**：存储玩家偏好设置和自定义数据
+
 - **本地化支持**：易于翻译成任何语言
+
 - **玩家统计**：显示延迟、KDA、血量、队伍等信息
+
 - **管理员公告**：服务器管理员可以向所有玩家显示公告
+
 - **自定义数据支持**：显示积分（通过 Store API 集成）、游戏时间、上次登录日期等
+
 > [!WARNING]
 > 因为是定向开发，所以只能使用 schwarper/cs2-store 的插件系统来显示对应的玩家积分！
 > 如果你没有在使用该插件，本HUD配置文件中默认关闭积分显示！
@@ -314,10 +321,15 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
 
 ### 对于这个模块的使用方法
 - 这个模块设计逻辑是，通过获取当前玩家的`steamid`，然后匹配你设置的表名称，列名称，获取对应玩家在这张表指定的列中的数据，然后通过lang文件自定义标题来显示这个数据，目前只提供了两种参数类型，时间和日期
+
 - 目前仅提供修改`playtime`，`signin`两个模块，且存在限制，因为是定向开发
+
 - 在`playtime`中，匹配的表中记录的`steamid`字段名称为`steam_id`，且数据必须是以秒为单位，计算方法会自动计算成`n小时n分钟`然后打印在HUD上
+
 - 在`signin`中，匹配的表中记录的`steamid`字段名称为`steamid64`，且数据必须是标准日期格式，计算方法会根据日期计算获取的数据和查询的时刻日期差距，然后仅保留day参数的差距，最后打印显示`n天前`，`今天`的信息
+
 - 修改完上述参数并且确切匹配了列名称之后，请修改位于`...\addons\counterstrikesharp\plugins\CS2-InGameHUD\lang`下对应的语言文件，以`zh-Hans`为例：
+
 ```json
 {
   "hud.greeting": "你好！【{0}】",
@@ -355,8 +367,11 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
 }
 ```
 - 修改"上次签到"为你想要显示的标题来适配你数据表中获取的数据，请勿修改`{0}`!
+
 - 修改""为你想要显示的标题来适配你数据表中获取的数据，请勿修改`{0}` `{1}`!
+
 - 其余的自定义内容你可以自行考究如何修改（比如延迟，战绩，阵营等内容，但是切勿修改后面的数字，因为这是显示的参数内容！），支持CounterStrikeSharp原生的颜色显示：
+
 
 ![image](https://github.com/user-attachments/assets/7471300a-d5a1-4690-81c4-25fe88ac34cd)
 
