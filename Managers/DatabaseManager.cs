@@ -25,7 +25,6 @@ namespace InGameHUD.Managers
                 using var connection = new MySqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                // 建表
                 await CreatePlayerSettingsTable(connection);
 
                 return (true, string.Empty);
@@ -108,12 +107,12 @@ namespace InGameHUD.Managers
                         HUDPosition = (HUDPosition)(reader.GetInt32("hud_position") - 1)
                     };
                 }
-                return new PlayerData(steamId); // 返回默认设置
+                return new PlayerData(steamId);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[InGameHUD] Error loading player settings: {ex.Message}");
-                return new PlayerData(steamId); // 发生错误时返回默认设置
+                return new PlayerData(steamId);
             }
         }
 
@@ -137,7 +136,6 @@ namespace InGameHUD.Managers
                         var playtimeTable = _config.CustomData.Playtime.TableName;
                         var playtimeColumn = _config.CustomData.Playtime.ColumnName;
 
-                        // 使用完全限定的表名
                         string playtimeQuery = $@"
                             SELECT `{playtimeColumn}` 
                             FROM `{_config.MySqlConnection.Database}`.`{playtimeTable}` 

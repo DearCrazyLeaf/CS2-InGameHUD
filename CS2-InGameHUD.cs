@@ -13,6 +13,7 @@ using CounterStrikeSharp.API.Core.Capabilities;
 using CS2_GameHUDAPI;
 using StoreApi;
 using Microsoft.Extensions.Hosting.Internal;
+using Microsoft.Extensions.Localization;
 
 namespace InGameHUD
 {
@@ -30,12 +31,15 @@ namespace InGameHUD
         private Dictionary<string, PlayerData> _playerCache = new();
         private DatabaseManager? _db;
         private bool _dbConnected = false;
-
+        private readonly IStringLocalizer<InGameHUD> _localizer;
         public Config Config { get; set; } = new();
+        public InGameHUD(IStringLocalizer<InGameHUD> localizer)
+        {
+            _localizer = localizer;
+        }
 
         public void OnConfigParsed(Config config)
         {
-            // 更新配置
             Config = config;
             Console.WriteLine($"[InGameHUD] Configuration loaded successfully");
         }
@@ -44,7 +48,6 @@ namespace InGameHUD
         {
             try
             {
-                // 初始化 GameHUD API
                 var capability = new PluginCapability<IGameHUDAPI>("gamehud:api");
                 _api = capability.Get();
 
@@ -54,7 +57,6 @@ namespace InGameHUD
                     throw new Exception("GameHUDAPI not found!");
                 }
 
-                // 初始化数据库
                 _db = new DatabaseManager(Config);
                 try
                 {
@@ -78,17 +80,13 @@ namespace InGameHUD
                     _dbConnected = false;
                 }
 
-                // 注册命令
                 AddCommand("hud", "Toggle HUD visibility", CommandToggleHUD);
                 AddCommand("hudpos", "Change HUD position (1-5)", CommandHUDPosition);
 
-                // 注册事件
                 RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnect);
                 RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
                 RegisterEventHandler<EventPlayerDeath>(OnPlayerDeath);
                 RegisterEventHandler<EventPlayerTeam>(OnPlayerTeam);
-
-                // 注册Tick更新
                 RegisterListener<Listeners.OnTick>(() =>
                 {
                     if (++_tickCounter % 320 != 0) return;
@@ -102,7 +100,6 @@ namespace InGameHUD
 
                         if (_playerCache.TryGetValue(steamId, out var playerData) && playerData.HUDEnabled)
                         {
-                            // 直接调用更新方法，它内部会处理状态检查
                             UpdatePlayerHUDSync(player);
                         }
                     }
@@ -147,7 +144,6 @@ namespace InGameHUD
         {
             if (player == null || !player.IsValid) return;
 
-            // 添加状态检查：如果玩家死亡或观察者，则移除HUD并不再更新
             if (!player.PawnIsAlive || player.TeamNum == (int)CsTeam.Spectator)
             {
                 _api?.Native_GameHUD_Remove(player, MAIN_HUD_CHANNEL);
@@ -159,7 +155,6 @@ namespace InGameHUD
 
             try
             {
-                // 更新自定义数据
                 if (_dbConnected && _db != null)
                 {
                     var customDataTask = _db.GetCustomData(steamId);
@@ -169,7 +164,6 @@ namespace InGameHUD
 
                 var (position, justify) = GetHUDPosition(playerData.HUDPosition);
 
-                // 设置HUD参数
                 _api?.Native_GameHUD_SetParams(
                     player,
                     MAIN_HUD_CHANNEL,
@@ -185,59 +179,49 @@ namespace InGameHUD
                     Config.BackgroundOpacity
                 );
 
-                // 构建HUD内容
                 var hudBuilder = new StringBuilder();
 
-                // 玩家名称
-                hudBuilder.AppendLine($"你好！【{player.PlayerName}】");
-                hudBuilder.AppendLine($"===================");
+                hudBuilder.AppendLine(_localizer["hud.greeting", player.PlayerName]);
+                hudBuilder.AppendLine(_localizer["hud.separator"]);
 
-                // --- 新增：显示当前系统时间
                 if (Config.ShowTime)
                 {
-                    hudBuilder.AppendLine($"当前时间: {DateTime.Now:HH:mm}");
+                    hudBuilder.AppendLine(_localizer["hud.current_time", DateTime.Now.ToString("HH:mm")]);
                 }
 
-                // --- 新增：显示玩家 Ping
-                //    根据 CSSharp API 文档，CCSPlayerController.Ping 返回当前 Ping 值
                 if (Config.ShowPing)
                 {
-                    hudBuilder.AppendLine($"延迟: {player.Ping} ms");
+                    hudBuilder.AppendLine(_localizer["hud.ping", player.Ping]);
                 }
 
-                // KDA统计
                 if (Config.ShowKDA && player.ActionTrackingServices?.MatchStats != null)
                 {
                     var stats = player.ActionTrackingServices.MatchStats;
-                    hudBuilder.AppendLine($"KDR: {stats.Kills}/{stats.Deaths}/{stats.Assists}");
+                    hudBuilder.AppendLine(_localizer["hud.kda", stats.Kills, stats.Deaths, stats.Assists]);
                 }
 
-                // 生命值
                 if (Config.ShowHealth && player.PlayerPawn != null && player.PlayerPawn.Value != null)
                 {
-                    hudBuilder.AppendLine($"HP: {player.PlayerPawn.Value.Health}");
+                    hudBuilder.AppendLine(_localizer["hud.health", player.PlayerPawn.Value.Health]);
                 }
 
-                // 阵营显示
                 if (Config.ShowTeams)
                 {
-                    string teamName = "SPEC";
+                    string teamKey = "hud.team_spec";
                     if (player.TeamNum == 2)
                     {
-                        teamName = "T";
+                        teamKey = "hud.team_t";
                     }
                     else if (player.TeamNum == 3)
                     {
-                        teamName = "CT";
+                        teamKey = "hud.team_ct";
                     }
-                    hudBuilder.AppendLine($"阵营: {teamName}");
+                    hudBuilder.AppendLine(_localizer["hud.team", _localizer[teamKey]]);
                 }
 
-                // --- 新增：显示玩家得分
-                //    根据 CSSharp API 文档，MatchStats.Score 提供当前得分
                 if (Config.ShowScore)
                 {
-                    hudBuilder.AppendLine($"得分: {player.Score}");
+                    hudBuilder.AppendLine(_localizer["hud.score", player.Score]);
                 }
 
                 // -----------------------------------------------------------------添加自定义数据
@@ -247,17 +231,14 @@ namespace InGameHUD
                     {
                         Console.WriteLine($"[InGameHUD] Attempting to get credits for {player.PlayerName}");
 
-                        // 确保玩家对象有效
                         if (player != null && player.IsValid)
                         {
                             int playerCredits = _storeApi.GetPlayerCredits(player);
                             Console.WriteLine($"[InGameHUD] Credits for {player.PlayerName}: {playerCredits}");
 
-                            // 将积分数据存储到 playerData 中
                             playerData.CustomData["credits"] = playerCredits.ToString();
 
-                            // 在 HUD 上显示积分
-                            hudBuilder.AppendLine($"积分: {playerCredits}");
+                            hudBuilder.AppendLine(_localizer["hud.credits", playerCredits]);
                         }
                         else
                         {
@@ -271,19 +252,20 @@ namespace InGameHUD
                     }
                 }
 
-                // —— 新增：上次签到
                 if (playerData.CustomData.ContainsKey("last_signin"))
                 {
                     var lastSignInRaw = playerData.CustomData["last_signin"];
                     if (DateTime.TryParse(lastSignInRaw, out var lastSignInDt))
                     {
                         int daysAgo = (DateTime.Now.Date - lastSignInDt.Date).Days;
-                        string display = daysAgo == 0 ? "今天" : $"{daysAgo}天前";
-                        hudBuilder.AppendLine($"上次签到: {display}");
+                        string display = daysAgo == 0
+                            ? _localizer["hud.today"]
+                            : _localizer["hud.days_ago", daysAgo];
+                        hudBuilder.AppendLine(_localizer["hud.last_signin", display]);
                     }
                     else
                     {
-                        hudBuilder.AppendLine($"上次签到: 从未签到或数据异常");
+                        hudBuilder.AppendLine(_localizer["hud.last_signin", _localizer["hud.never_signed"]]);
                     }
                 }
 
@@ -292,27 +274,26 @@ namespace InGameHUD
                     var playtime = int.Parse(playerData.CustomData["playtime"]);
                     var hours = playtime / 3600;
                     var minutes = (playtime % 3600) / 60;
-                    hudBuilder.AppendLine($"游玩时长: {hours}小时{minutes}分钟");
+                    hudBuilder.AppendLine(_localizer["hud.playtime", hours, minutes]);
                 }
                 // -----------------------------------------------------------------结束
-                hudBuilder.AppendLine($"===================");
-                    hudBuilder.AppendLine($"!hud开关面板");
-                    hudBuilder.AppendLine($"!help查看帮助");
-                    hudBuilder.AppendLine($"!store打开商店");
-                    hudBuilder.AppendLine($"官方网站: hlymcn.cn");
-                    hudBuilder.AppendLine($"===================");
+                hudBuilder.AppendLine(_localizer["hud.separator_bottom"]);
+                hudBuilder.AppendLine(_localizer["hud.hint_toggle"]);
+                hudBuilder.AppendLine(_localizer["hud.hint_help"]);
+                hudBuilder.AppendLine(_localizer["hud.hint_store"]);
+                hudBuilder.AppendLine(_localizer["hud.hint_website"]);
+                hudBuilder.AppendLine(_localizer["hud.separator_final"]);
 
                 if (Config.ShowAnnouncementTitle)
                 {
-                    hudBuilder.AppendLine($"公告标题");
+                    hudBuilder.AppendLine(_localizer["hud.announcement_title"]);
                 }
 
                 if (Config.ShowAnnouncement)
                 {
-                    hudBuilder.AppendLine($"公告内容");
+                    hudBuilder.AppendLine(_localizer["hud.announcement_content"]);
                 }
 
-                // 显示HUD
                 _api?.Native_GameHUD_ShowPermanent(player, MAIN_HUD_CHANNEL, hudBuilder.ToString());
             }
             catch (Exception ex)
@@ -335,7 +316,6 @@ namespace InGameHUD
             catch (Exception ex)
             {
                 Console.WriteLine($"[InGameHUD] Error loading settings for {player.PlayerName}: {ex.Message}");
-                // 如果加载失败，使用默认设置
                 if (player != null && player.IsValid)
                 {
                     _playerCache[player.SteamID.ToString()] = new PlayerData(player.SteamID.ToString());
@@ -365,14 +345,6 @@ namespace InGameHUD
         {
             if (player == null || !player.IsValid) return;
 
-            // 检查玩家状态
-            bool isInvalidState = !player.PawnIsAlive || player.TeamNum == (int)CsTeam.Spectator;
-            if (isInvalidState)
-            {
-                player.PrintToChat($" {ChatColors.Red}当前状态无法启用HUD（死亡或观察者）");
-                return;
-            }
-
             var steamId = player.SteamID.ToString();
             if (!_playerCache.TryGetValue(steamId, out var playerData))
             {
@@ -380,17 +352,24 @@ namespace InGameHUD
                 _playerCache[steamId] = playerData;
             }
 
+            bool isInvalidState = !player.PawnIsAlive || player.TeamNum == (int)CsTeam.Spectator;
+            if (isInvalidState)
+            {
+                player.PrintToChat(_localizer["hud.invalid_state"]);
+                return;
+            }
+
             playerData.HUDEnabled = !playerData.HUDEnabled;
 
             if (playerData.HUDEnabled)
             {
                 UpdatePlayerHUDSync(player);
-                player.PrintToChat($" {ChatColors.Green}HUD已启用");
+                player.PrintToChat(_localizer["hud.enabled"]);
             }
             else
             {
                 _api?.Native_GameHUD_Remove(player, MAIN_HUD_CHANNEL);
-                player.PrintToChat($" {ChatColors.Red}HUD已禁用");
+                player.PrintToChat(_localizer["hud.disabled"]);
             }
 
             SavePlayerSettingsSync(player);
@@ -400,18 +379,18 @@ namespace InGameHUD
         {
             if (player == null || !player.IsValid) return;
 
-            if (command.ArgCount != 1)
-            {
-                player.PrintToChat($" {ChatColors.Green}用法: !hudpos <1-5>");
-                player.PrintToChat($" {ChatColors.Green}1:左上 2:右上 3:左下 4:右下 5:居中");
-                return;
-            }
-
             var steamId = player.SteamID.ToString();
             if (!_playerCache.TryGetValue(steamId, out var playerData))
             {
                 playerData = new PlayerData(steamId);
                 _playerCache[steamId] = playerData;
+            }
+
+            if (command.ArgCount != 1)
+            {
+                player.PrintToChat(_localizer["hud.position_usage"]);
+                player.PrintToChat(_localizer["hud.position_help"]);
+                return;
             }
 
             if (int.TryParse(command.ArgByIndex(1), out int pos) && pos >= 1 && pos <= 5)
@@ -424,12 +403,12 @@ namespace InGameHUD
                     UpdatePlayerHUDSync(player);
                 }
 
-                player.PrintToChat($" {ChatColors.Green}HUD位置已更改");
+                player.PrintToChat(_localizer["hud.position_changed"]);
                 SavePlayerSettingsSync(player);
             }
             else
             {
-                player.PrintToChat($" {ChatColors.Red}无效的位置! 请使用 1-5");
+                player.PrintToChat(_localizer["hud.position_invalid"]);
             }
         }
 
@@ -479,7 +458,6 @@ namespace InGameHUD
             var player = @event.Userid;
             if (player != null && player.IsValid && !player.IsBot)
             {
-                // 如果切换到观察者队伍，立即移除HUD
                 if (@event.Team == (byte)CsTeam.Spectator)
                 {
                     _api?.Native_GameHUD_Remove(player, MAIN_HUD_CHANNEL);
@@ -515,7 +493,7 @@ namespace InGameHUD
 
                 _playerCache.Clear();
                 _api = null;
-                _storeApi = null; // 释放StoreAPI引用
+                _storeApi = null;
                 _db = null;
                 Console.WriteLine("[InGameHUD] Plugin unloaded successfully!");
             }
