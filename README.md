@@ -117,7 +117,7 @@ Feel free to submit issues or pull requests if you have suggestions, bug reports
 
 # CS2-InGameHUD
 
-**一个用于 Counter-Strike 2 服务器的可自定义游戏内 HUD 插件。该插件以简洁、可配置的格式向玩家展示各种信息，可以放置在屏幕的任何位置。**
+**一个用于 Counter-Strike 2 服务器的可自定义游戏内 HUD 插件，该插件以简洁、可配置的格式向玩家展示各种信息，可以放置在屏幕的任何位置**
 
 ## 特性
 
@@ -129,6 +129,11 @@ Feel free to submit issues or pull requests if you have suggestions, bug reports
 - **玩家统计**：显示延迟、KDA、血量、队伍等信息
 - **管理员公告**：服务器管理员可以向所有玩家显示公告
 - **自定义数据支持**：显示积分（通过 Store API 集成）、游戏时间、上次登录日期等
+> [!WARNING]
+> 因为是定向开发，所以只能使用 schwarper/cs2-store 的插件系统来显示对应的玩家积分！
+> 如果你没有在使用该插件，本HUD配置文件中默认关闭积分显示！
+> 此外，对于上次签到时间的显示，这是对于适配我们自己开发的签到系统而定制的！
+> 你可以修改这些自定义内容为其他想要显示的东西，具体请查看自定义内容介绍！
 
 ## 要求
 
@@ -173,15 +178,15 @@ Feel free to submit issues or pull requests if you have suggestions, bug reports
     "password": ""                   // Database password - 数据库密码
   },
   "custom_data": {                   // Custom data display settings - 自定义数据显示设置
-    "credits": {                     // Store credits display - 商店点数显示
+    "credits": {                     // Store credits display - 商店点数显示（必须基于schwarper/cs2-store的商店系统，默认关闭）
       "enabled": true                // Enable/disable credits display - 启用/禁用点数显示
     },
-    "playtime": {                    // Player playtime display - 玩家游戏时长显示
+    "playtime": {                    // Player playtime display - 玩家游戏时长显示（定制，如果您没有该系统请看自定义内容介绍来更换）
       "enabled": true,               // Enable/disable playtime display - 启用/禁用游戏时长显示
       "table_name": "time_table",    // Database table name for playtime - 游戏时长数据表名
       "column_name": "time"          // Database column name for playtime - 游戏时长字段名
     },
-    "signin": {                      // Last sign-in display - 上次签到显示
+    "signin": {                      // Last sign-in display - 上次签到显示（定制，如果您没有该系统请看自定义内容介绍来更换）
       "enabled": true,               // Enable/disable sign-in display - 启用/禁用签到显示
       "table_name": "signin_table",  // Database table for sign-in records - 签到记录数据表名
       "column_name": "signin_time"   // Database column for sign-in timestamp - 签到时间字段名
@@ -189,6 +194,71 @@ Feel free to submit issues or pull requests if you have suggestions, bug reports
   }
 }
 ```
+
+## 自定义内容模块
+
+### 这是一个特殊的模块系统，用于获取指定数据库表中特定的内容来显示对应的信息，以下是详细介绍
+
+| 参数名称              | 描述                                                                          |
+|-----------------------|-------------------------------------------------------------------------------|
+| `credits`             | 积分显示模块，仅开发用于schwarper/cs2-store的商店系统，显示玩家商店中玩家拥有的积分 |
+| `playtime`            | 游戏时长模块，仅开发用于k4system，用于显示k4系统中记录的玩家游戏时长               |
+| `signin`              | 最近签到时间模块，仅开发用于我们自己的签到系统，用于显示最近一次的签到时间           |
+| `enabled`             | 是否开启显示，`true`开启显示，`false`关闭，请注意，使用这些功能一定要设置好表并且连接好数据库，否则无效！|
+| `table_name`          | 要获取的目标表名称                                                              |
+| `column_name`         | 要获取的目标列名称（字段）                                                       |
+
+### 对于这个模块的使用方法
+- 这个模块设计逻辑是，通过获取当前玩家的`steamid`，然后匹配你设置的表名称，列名称，获取对应玩家在这张表指定的列中的数据，然后通过lang文件自定义标题来显示这个数据，目前只提供了两种参数类型，时间和日期
+- 目前仅提供修改`playtime`，`signin`两个模块，且存在限制，因为是定向开发
+- 在`playtime`中，匹配的表中记录的`steamid`字段名称为`steam_id`，且数据必须是以秒为单位，计算方法会自动计算成`n小时n分钟`然后打印在HUD上
+- 在`signin`中，匹配的表中记录的`steamid`字段名称为`steamid64`，且数据必须是标准日期格式，计算方法会根据日期计算获取的数据和查询的时刻日期差距，然后仅保留day参数的差距，最后打印显示`n天前`，`今天`的信息
+- 修改完上述参数并且确切匹配了列名称之后，请修改位于`...\addons\counterstrikesharp\plugins\CS2-InGameHUD\lang`下对应的语言文件，以`zh-Hans`为例：
+```json
+{
+  "hud.greeting": "你好！【{0}】",
+  "hud.separator": "===================",
+  "hud.current_time": "当前时间: {0}",
+  "hud.ping": "延迟: {0} ms",
+  "hud.kda": "战绩: {0}/{1}/{2}",
+  "hud.health": "生命值: {0}",
+  "hud.team": "阵营: {0}",
+  "hud.score": "得分: {0}",
+  "hud.credits": "积分: {0}",
+  "hud.last_signin": "上次签到: {0}",         // 修改"上次签到"为你想要显示的标题来适配你数据表中获取的数据，请勿修改{0}!
+  "hud.never_signed": "从未签到或数据异常",
+  "hud.today": "今天",
+  "hud.days_ago": "{0}天前",
+  "hud.playtime": "游玩时长: {0}小时{1}分钟",  // 修改""为你想要显示的标题来适配你数据表中获取的数据，请勿修改{0}{1}!
+  "hud.separator_bottom": "===================",
+  "hud.hint_toggle": "自定义信息，你可以写，!hud开关面板",
+  "hud.hint_help": "自定义信息，你可以写，!help查看帮助",
+  "hud.hint_store": "自定义信息，你可以写，!store打开商店",
+  "hud.hint_website": "自定义信息，预设是填写网站，你可以写QQ群等",
+  "hud.separator_final": "===================",
+  "hud.announcement_title": "【公告标题】",
+  "hud.announcement_content": "公告内容1\n公告内容2\n公告内容3\n以此类推",  // \n是换行符
+  "hud.team_t": "T",
+  "hud.team_ct": "CT",
+  "hud.team_spec": "观察",
+  "hud.enabled": "{White}HUD{Lime}已启用{White}！",
+  "hud.disabled": "{White}HUD{Lime}已禁用{White}！",
+  "hud.invalid_state": "{Red}当前状态无法启用HUD（死亡或观察状态）！",
+  "hud.position_usage": "{White}用法: {Lime}!hudpos {White}<{Lime}1-5{White}>",
+  "hud.position_help": "{Lime}1{White}:左上  {Lime}2{White}:右上  {Lime}3{White}:左下  {Lime}4{White}:右下  {Lime}5{White}:居中",
+  "hud.position_changed": "{White}HUD位置{Lime}已更改{White}！",
+  "hud.position_invalid": "{White}无效的位置! 请使用{Lime}1-5{White}！"
+}
+```
+- 修改"上次签到"为你想要显示的标题来适配你数据表中获取的数据，请勿修改{0}!
+- 修改""为你想要显示的标题来适配你数据表中获取的数据，请勿修改{0}{1}!
+- 其余的自定义内容你可以自行考究如何修改（比如延迟，战绩，阵营等内容，但是切勿修改后面的数字，因为这是显示的参数内容！），支持CounterStrikeSharp原生的颜色显示：
+
+![image](https://github.com/user-attachments/assets/7471300a-d5a1-4690-81c4-25fe88ac34cd)
+
+示例图片来源：[oqyh/cs2-Kill-Sound-GoldKingZ](https://github.com/oqyh/cs2-Kill-Sound-GoldKingZ?tab=readme-ov-file)中的图片
+
+- 目前模块开发很有限，你可以自行添加想要的功能，然后提交Pull requests，或者是克隆当作自己使用
 
 ## 数据库设置
 
