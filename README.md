@@ -123,7 +123,6 @@ Feel free to submit issues or pull requests if you have suggestions, bug reports
 
 - **自定义 HUD 位置**：玩家可以从 5 种不同位置中选择（左上角、右上角、左下角、右下角和中心）
 - **可切换显示**：玩家可以使用简单的命令打开或关闭 HUD
-- **多平台支持**：兼容 Windows 和 Linux CS2 服务器
 - **MySQL 集成**：存储玩家偏好设置和自定义数据
 - **本地化支持**：易于翻译成任何语言
 - **玩家统计**：显示延迟、KDA、血量、队伍等信息
@@ -144,7 +143,7 @@ Feel free to submit issues or pull requests if you have suggestions, bug reports
 
 ## 安装
 
-1. 下载适用于您服务器平台（Windows/Linux）的最新版本
+1. 下载最新版本
 2. 解压内容到您的 CS2 服务器的 `game/csgo/addons/counterstrikesharp/plugins` 目录
 3. 在 `addons/counterstrikesharp/configs/plugins/InGameHUD/InGameHUD.json` 中配置插件设置
 4. 重启服务器或加载插件
@@ -198,6 +197,7 @@ Feel free to submit issues or pull requests if you have suggestions, bug reports
 ## 自定义内容模块
 
 ### 这是一个特殊的模块系统，用于获取指定数据库表中特定的内容来显示对应的信息，以下是详细介绍
+#### 目前模块开发很有限，你可以自行添加想要的功能，然后提交Pull requests，或者是克隆当作自己使用
 
 | 参数名称              | 描述                                                                          |
 |-----------------------|-------------------------------------------------------------------------------|
@@ -250,15 +250,13 @@ Feel free to submit issues or pull requests if you have suggestions, bug reports
   "hud.position_invalid": "{White}无效的位置! 请使用{Lime}1-5{White}！"
 }
 ```
-- 修改"上次签到"为你想要显示的标题来适配你数据表中获取的数据，请勿修改{0}!
-- 修改""为你想要显示的标题来适配你数据表中获取的数据，请勿修改{0}{1}!
+- 修改"上次签到"为你想要显示的标题来适配你数据表中获取的数据，请勿修改`{0}`!
+- 修改""为你想要显示的标题来适配你数据表中获取的数据，请勿修改`{0}` `{1}`!
 - 其余的自定义内容你可以自行考究如何修改（比如延迟，战绩，阵营等内容，但是切勿修改后面的数字，因为这是显示的参数内容！），支持CounterStrikeSharp原生的颜色显示：
 
 ![image](https://github.com/user-attachments/assets/7471300a-d5a1-4690-81c4-25fe88ac34cd)
 
-示例图片来源：[oqyh/cs2-Kill-Sound-GoldKingZ](https://github.com/oqyh/cs2-Kill-Sound-GoldKingZ?tab=readme-ov-file)中的图片
-
-- 目前模块开发很有限，你可以自行添加想要的功能，然后提交Pull requests，或者是克隆当作自己使用
+#### 示例图片来源：[oqyh/cs2-Kill-Sound-GoldKingZ](https://github.com/oqyh/cs2-Kill-Sound-GoldKingZ?tab=readme-ov-file)仓库（因为比较懒）
 
 ## 数据库设置
 
