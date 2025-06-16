@@ -25,10 +25,10 @@
 
 ## Requirements
 
-- CounterStrikeSharp (API Version 1.0.318 or higher)
-- GameHUD API
+- [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp)
+- [GameHUD API](https://github.com/darkerz7/CS2-GameHUD)
+- [Store API](https://github.com/schwarper/cs2-store) (optional, for credits display)
 - MySQL Server (optional, for storing player preferences)
-- Store API (optional, for credits display)
 
 ## Installation
 
@@ -132,10 +132,10 @@ Feel free to submit issues or pull requests if you have suggestions, bug reports
 
 ## 要求
 
-- CounterStrikeSharp (API 版本 1.0.318 或更高)
-- GameHUD API
+- [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp)
+- [GameHUD API](https://github.com/darkerz7/CS2-GameHUD)
+- [Store API](https://github.com/schwarper/cs2-store) (可选，用于显示玩家的积分)
 - MySQL 服务器（可选，用于存储玩家偏好）
-- Store API（可选，用于显示积分）
 
 ## 安装
 
