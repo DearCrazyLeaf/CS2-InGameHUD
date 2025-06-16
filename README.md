@@ -153,9 +153,9 @@ The plugin's configuration file (`InGameHUD.json`) contains the following settin
 
 #### Sample image source: [oqyh/cs2-Kill-Sound-GoldKingZ](https://github.com/oqyh/cs2-Kill-Sound-GoldKingZ?tab=readme-ov-file) repository (because I'm a bit lazy)
 
-[!WARNING]
->Do not add color information to text in the announcement content or above, as those are displayed on the HUD and color codes won't work! 
->HUD text only supports changing all text color at once, which must be set in the configuration file!
+> [!WARNING]
+> Do not add color information to text in the announcement content or above, as those are displayed on the HUD and color codes won't work! 
+> HUD text only supports changing all text color at once, which must be set in the configuration file!
 
 ## Database Setup
 
