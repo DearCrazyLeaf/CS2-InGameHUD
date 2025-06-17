@@ -24,7 +24,7 @@
 
 - **Localization Support**: Easy to translate to any language
 
-- **Player Statistics**: Display ping, KDA, health, team, and more
+- **Player Statistics**: Display maptime, maprounds, ping, KDA, health, team, and more
 
 - **Admin Announcements**: Server admins can display announcements to all players
 
@@ -57,15 +57,17 @@ The plugin's configuration file (`InGameHUD.json`) contains the following settin
 ```json
 {
   "version": 1,                      // Don't change this
-  "font_size": 50,                   // Your font size
+  "font_size": 20,                   // Your font size
   "font_name": "Arial Bold",         // Font family name
-  "scale": 0.1,                      // Overall HUD scale
-  "background_opacity": 0.6,         // Background transparency (0-1)
-  "background_scale": 0.3,           // Background size relative to content
+  "scale": 0.08,                     // Overall HUD scale
+  "background_opacity": 0.2,         // Background transparency (0-1)
+  "background_scale": 0.1,           // Background size relative to content
   "show_kda": true,                  // Display kills/deaths/assists
   "show_health": true,               // Display player health
   "show_team": true,                 // Display team information
   "show_time": true,                 // Display current time
+  "show_map_time": true,             // Display current map time or rounds
+  "map_time_mode": 0,                // Change map time or rounds mode, 0 for TimeLimit, 1 for RoundLimit
   "show_ping": true,                 // Display player ping
   "show_score": true,                // Display player scores
   "show_announcement_title": true,   // Display announcement title
@@ -95,33 +97,39 @@ The plugin's configuration file (`InGameHUD.json`) contains the following settin
   },
   "positions": {                     // HUD preset position parameter settings
     "TopLeft": {                     // Top left position
-      "x_offset": -30,               // X-axis offset, recommended range (-50 to 50), exceeding this range may cause abnormal HUD display
-      "y_offset": 5,                 // Y-axis offset, recommended range (-10 to 10), exceeding this range may cause abnormal HUD display
-      "z_distance": 50               // Z-axis distance, recommended range (40-70), exceeding this range may cause abnormal HUD display and possible occlusion by walls
+      "x_offset": -21,               // X-axis offset, recommended range (-50 to 50), exceeding this range may cause abnormal HUD display
+      "y_offset": 3,                 // Y-axis offset, recommended range (-10 to 10), exceeding this range may cause abnormal HUD display
+      "z_distance": 42               // Z-axis distance, recommended range (40-70), exceeding this range may cause abnormal HUD display and possible occlusion by walls
     },
     "TopRight": {                    // Top right position
-      "x_offset": 30,                // X-axis offset, recommended range (-50 to 50), exceeding this range may cause abnormal HUD display
-      "y_offset": 5,                 // Y-axis offset, recommended range (-10 to 10), exceeding this range may cause abnormal HUD display
-      "z_distance": 50               // Z-axis distance, recommended range (40-70), exceeding this range may cause abnormal HUD display and possible occlusion by walls
+      "x_offset": 21,                // X-axis offset, recommended range (-50 to 50), exceeding this range may cause abnormal HUD display
+      "y_offset": 3,                 // Y-axis offset, recommended range (-10 to 10), exceeding this range may cause abnormal HUD display
+      "z_distance": 42               // Z-axis distance, recommended range (40-70), exceeding this range may cause abnormal HUD display and possible occlusion by walls
     },
     "BottomLeft": {                  // Bottom left position
-      "x_offset": -30,               // X-axis offset, recommended range (-50 to 50), exceeding this range may cause abnormal HUD display
-      "y_offset": -5,                // Y-axis offset, recommended range (-10 to 10), exceeding this range may cause abnormal HUD display
-      "z_distance": 50               // Z-axis distance, recommended range (40-70), exceeding this range may cause abnormal HUD display and possible occlusion by walls
+      "x_offset": -21,               // X-axis offset, recommended range (-50 to 50), exceeding this range may cause abnormal HUD display
+      "y_offset": -3,                // Y-axis offset, recommended range (-10 to 10), exceeding this range may cause abnormal HUD display
+      "z_distance": 42               // Z-axis distance, recommended range (40-70), exceeding this range may cause abnormal HUD display and possible occlusion by walls
     },
     "BottomRight": {                 // Bottom right position
-      "x_offset": 30,                // X-axis offset, recommended range (-50 to 50), exceeding this range may cause abnormal HUD display
-      "y_offset": -5,                // Y-axis offset, recommended range (-10 to 10), exceeding this range may cause abnormal HUD display
-      "z_distance": 50               // Z-axis distance, recommended range (40-70), exceeding this range may cause abnormal HUD display and possible occlusion by walls
+      "x_offset": 21,                // X-axis offset, recommended range (-50 to 50), exceeding this range may cause abnormal HUD display
+      "y_offset": -3,                // Y-axis offset, recommended range (-10 to 10), exceeding this range may cause abnormal HUD display
+      "z_distance": 42               // Z-axis distance, recommended range (40-70), exceeding this range may cause abnormal HUD display and possible occlusion by walls
     },
     "Center": {                      // Center position
       "x_offset": 0,                 // Center position does not need X-axis offset
       "y_offset": 0,                 // Center position does not need Y-axis offset
-      "z_distance": 50               // Z-axis distance, recommended range (40-70), exceeding this range may cause abnormal HUD display and possible occlusion by walls
+      "z_distance": 42               // Z-axis distance, recommended range (40-70), exceeding this range may cause abnormal HUD display and possible occlusion by walls
     }
   }
 }
 ```
+
+> [!NOTE]
+> ### Please note!
+> Please configure `map_time_mode` based on your server settings! `0` for `TimeLimit` mode, `1` for `RoundLimit` mode!
+> If your server is based on time mode, set it to `0`, otherwise set it to `1`!
+> If your server is based on round mode, set it to `1`, otherwise set it to `0`!
 
 ## Custom Content Module
 
@@ -152,6 +160,9 @@ The plugin's configuration file (`InGameHUD.json`) contains the following settin
 {
   "hud.greeting": "Hello! [{0}]",
   "hud.separator": "===================",
+  "hud.map_time_remaining": "Map Time: {0}m{1}s",
+  "hud.map_round_info": "Round: {0}/{1}",
+  "hud.warmuptime": "Map Status: Warm-Up",
   "hud.current_time": "Current Time: {0}",
   "hud.ping": "Ping: {0} ms",
   "hud.kda": "KDA: {0}/{1}/{2}",
@@ -281,7 +292,7 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
 
 - **本地化支持**：易于翻译成任何语言
 
-- **玩家统计**：显示延迟、KDA、血量、队伍等信息
+- **玩家统计**：显示地图时间，回合，延迟、KDA、血量、队伍等信息
 
 - **管理员公告**：服务器管理员可以向所有玩家显示公告
 
@@ -314,15 +325,17 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
 ```json
 {
   "version": 1,                      // 请勿修改此值
-  "font_size": 50,                   // 字体大小
+  "font_size": 20,                   // 字体大小
   "font_name": "Arial Bold",         // 字体名称
-  "scale": 0.1,                      // HUD整体缩放比例
-  "background_opacity": 0.6,         // 背景透明度(0-1)
-  "background_scale": 0.3,           // 背景相对内容的大小
+  "scale": 0.08,                     // HUD整体缩放比例
+  "background_opacity": 0.2,         // 背景透明度(0-1)
+  "background_scale": 0.1,           // 背景相对内容的大小
   "show_kda": true,                  // 显示击杀/死亡/助攻
   "show_health": true,               // 显示玩家生命值
   "show_team": true,                 // 显示队伍信息
   "show_time": true,                 // 显示当前时间
+  "show_map_time": true,             // 显示当前地图剩余时间或回合
+  "map_time_mode": 0,                // 切换地图剩余时间或回合模式，0为剩余时间，1为剩余回合
   "show_ping": true,                 // 显示玩家延迟
   "show_score": true,                // 显示玩家得分
   "show_announcement_title": true,   // 显示公告标题
@@ -352,33 +365,39 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
   },
   "positions": {                     // HUD预设位置参数设置
     "TopLeft": {                     // 左上角位置
-      "x_offset": -30,               // X轴偏移，推荐范围（-50-50），超出此范围可能会导致HUD显示异常
-      "y_offset": 5,                 // Y轴偏移，推荐范围（-10-10），超出此范围可能会导致HUD显示异常
-      "z_distance": 50               // Z轴距离，推荐范围（40-70），超出此范围可能会导致HUD显示异常，并且可能会被墙体遮挡
+      "x_offset": -21,               // X轴偏移，推荐范围（-50-50），超出此范围可能会导致HUD显示异常
+      "y_offset": 3,                 // Y轴偏移，推荐范围（-10-10），超出此范围可能会导致HUD显示异常
+      "z_distance": 42               // Z轴距离，推荐范围（40-70），超出此范围可能会导致HUD显示异常，并且可能会被墙体遮挡
     },
     "TopRight": {                    // 右上角位置
-      "x_offset": 30,                // X轴偏移，推荐范围（-50-50），超出此范围可能会导致HUD显示异常
-      "y_offset": 5,                 // Y轴偏移，推荐范围（-10-10），超出此范围可能会导致HUD显示异常
-      "z_distance": 50               // Z轴距离，推荐范围（40-70），超出此范围可能会导致HUD显示异常，并且可能会被墙体遮挡
+      "x_offset": 21,                // X轴偏移，推荐范围（-50-50），超出此范围可能会导致HUD显示异常
+      "y_offset": 3,                 // Y轴偏移，推荐范围（-10-10），超出此范围可能会导致HUD显示异常
+      "z_distance": 42               // Z轴距离，推荐范围（40-70），超出此范围可能会导致HUD显示异常，并且可能会被墙体遮挡
     },
     "BottomLeft": {                  // 左下角位置
-      "x_offset": -30,               // X轴偏移，推荐范围（-50-50），超出此范围可能会导致HUD显示异常
-      "y_offset": -5,                // Y轴偏移，推荐范围（-10-10），超出此范围可能会导致HUD显示异常
-      "z_distance": 50               // Z轴距离，推荐范围（40-70），超出此范围可能会导致HUD显示异常，并且可能会被墙体遮挡
+      "x_offset": -21,               // X轴偏移，推荐范围（-50-50），超出此范围可能会导致HUD显示异常
+      "y_offset": -3,                // Y轴偏移，推荐范围（-10-10），超出此范围可能会导致HUD显示异常
+      "z_distance": 42               // Z轴距离，推荐范围（40-70），超出此范围可能会导致HUD显示异常，并且可能会被墙体遮挡
     },
     "BottomRight": {                 // 右下角位置
-      "x_offset": 30,                // X轴偏移，推荐范围（-50-50），超出此范围可能会导致HUD显示异常
-      "y_offset": -5,                // Y轴偏移，推荐范围（-10-10），超出此范围可能会导致HUD显示异常
-      "z_distance": 50               // Z轴距离，推荐范围（40-70），超出此范围可能会导致HUD显示异常，并且可能会被墙体遮挡
+      "x_offset": 21,                // X轴偏移，推荐范围（-50-50），超出此范围可能会导致HUD显示异常
+      "y_offset": -3,                // Y轴偏移，推荐范围（-10-10），超出此范围可能会导致HUD显示异常
+      "z_distance": 42               // Z轴距离，推荐范围（40-70），超出此范围可能会导致HUD显示异常，并且可能会被墙体遮挡
     },
     "Center": {                      // 居中位置
       "x_offset": 0,                 // 居中位置不需要X轴偏移
       "y_offset": 0,                 // 居中位置不需要Y轴偏移
-      "z_distance": 50               // Z轴距离，推荐范围（40-70），超出此范围可能会导致HUD显示异常，并且可能会被墙体遮挡
+      "z_distance": 42               // Z轴距离，推荐范围（40-70），超出此范围可能会导致HUD显示异常，并且可能会被墙体遮挡
     }
   }
 }
 ```
+
+> [!NOTE]
+> ### 请注意！
+> 请基于您的服务器设置来配置`map_time_mode`！`0`为`TimeLimit`模式，`1`为`RoundLimit`模式！
+> 如果您的服务器基于时间模式，请将其设置为`0`，否则请设置为`1`！
+> 如果您的服务器基于回合制模式，请将其设置为`1`，否则请设置为`0`！
 
 ## 自定义内容模块
 
@@ -409,6 +428,9 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
 {
   "hud.greeting": "你好！【{0}】",
   "hud.separator": "===================",
+  "hud.map_time_remaining": "地图剩余: {0}分{1}秒",
+  "hud.map_round_info": "回合剩余: {0}/{1}",
+  "hud.warmuptime": "地图状态: 热身中",
   "hud.current_time": "当前时间: {0}",
   "hud.ping": "延迟: {0} ms",
   "hud.kda": "战绩: {0}/{1}/{2}",
@@ -443,7 +465,7 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
 ```
 - 修改"上次签到"为你想要显示的标题来适配你数据表中获取的数据，请勿修改`{0}`!
 
-- 修改""为你想要显示的标题来适配你数据表中获取的数据，请勿修改`{0}` `{1}`!
+- 修改"游玩时长"为你想要显示的标题来适配你数据表中获取的数据，请勿修改`{0}` `{1}`!
 
 - 其余的自定义内容你可以自行考究如何修改（比如延迟，战绩，阵营等内容，但是切勿修改后面的数字，因为这是显示的参数内容！），支持CounterStrikeSharp原生的颜色显示：
 
