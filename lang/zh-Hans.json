@@ -2,6 +2,8 @@
   "hud.greeting": "你好！【{0}】",
   "hud.separator": "===================",
   "hud.map_time_remaining": "地图剩余: {0}分{1}秒",
+  "hud.map_round_info": "回合剩余: {0}/{1}",
+  "hud.warmuptime": "地图状态: 热身中",
   "hud.current_time": "当前时间: {0}",
   "hud.ping": "延迟: {0} ms",
   "hud.kda": "战绩: {0}/{1}/{2}",
