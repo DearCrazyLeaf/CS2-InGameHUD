@@ -83,19 +83,19 @@ namespace InGameHUD.Models
     public class PositionsSettings
     {
         [JsonPropertyName("TopLeft")]
-        public PositionConfig TopLeft { get; set; } = new PositionConfig(-30, 5, 50);
+        public PositionConfig TopLeft { get; set; } = new PositionConfig(-21, 3, 42);
 
         [JsonPropertyName("TopRight")]
-        public PositionConfig TopRight { get; set; } = new PositionConfig(30, 5, 50);
+        public PositionConfig TopRight { get; set; } = new PositionConfig(21, 3, 42);
 
         [JsonPropertyName("BottomLeft")]
-        public PositionConfig BottomLeft { get; set; } = new PositionConfig(-30, -5, 50);
+        public PositionConfig BottomLeft { get; set; } = new PositionConfig(-21, -3, 42);
 
         [JsonPropertyName("BottomRight")]
-        public PositionConfig BottomRight { get; set; } = new PositionConfig(30, -5, 50);
+        public PositionConfig BottomRight { get; set; } = new PositionConfig(21, -3, 42);
 
         [JsonPropertyName("Center")]
-        public PositionConfig Center { get; set; } = new PositionConfig(0, 0, 50);
+        public PositionConfig Center { get; set; } = new PositionConfig(0, 0, 42);
     }
 
     public class MySqlSettings
