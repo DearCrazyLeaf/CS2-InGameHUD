@@ -14,6 +14,7 @@ using CS2_GameHUDAPI;
 using StoreApi;
 using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.Extensions.Localization;
+using CounterStrikeSharp.API.Modules.Cvars;
 
 namespace InGameHUD
 {
@@ -140,6 +141,106 @@ namespace InGameHUD
             }
         }
 
+        private bool IsInWarmup()
+        {
+            try
+            {
+                CCSGameRulesProxy? gameRulesProxy = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").FirstOrDefault();
+                if (gameRulesProxy == null || gameRulesProxy.GameRules == null)
+                    return false;
+
+                return gameRulesProxy.GameRules.WarmupPeriod;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[InGameHUD] Error checking warmup status: {ex.Message}");
+                return false;
+            }
+        }
+
+        private (int minutes, int seconds) GetMapTimeRemaining()
+        {
+            try
+            {
+                CCSGameRulesProxy? gameRulesProxy = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").FirstOrDefault();
+                if (gameRulesProxy == null || gameRulesProxy.GameRules == null)
+                    return (0, 0);
+
+                CCSGameRules gameRules = gameRulesProxy.GameRules;
+
+                int timelimit = (int)ConVar.Find("mp_timelimit").GetPrimitiveValue<float>() * 60;
+
+                if (timelimit == 0)
+                    return (0, 0);
+
+                int gameStart = (int)gameRules.GameStartTime;
+                int currentTime = (int)Server.CurrentTime;
+                int timeleft = timelimit - (currentTime - gameStart);
+
+                if (timeleft < 0)
+                    timeleft = 0;
+
+                int minutes = timeleft / 60;
+                int seconds = timeleft % 60;
+
+                return (minutes, seconds);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[InGameHUD] Error getting map time: {ex.Message}");
+                Console.WriteLine($"[InGameHUD] {ex.StackTrace}");
+                return (0, 0);
+            }
+        }
+
+        private (int currentRound, int maxRounds) GetMapRoundInfo()
+        {
+            try
+            {
+                CCSGameRulesProxy? gameRulesProxy = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").FirstOrDefault();
+                if (gameRulesProxy == null || gameRulesProxy.GameRules == null)
+                    return (0, 0);
+
+                CCSGameRules gameRules = gameRulesProxy.GameRules;
+
+                int maxRounds = (int)ConVar.Find("mp_maxrounds").GetPrimitiveValue<int>();
+
+                int currentRound = gameRules.TotalRoundsPlayed + 1;
+
+                int roundsLeft = maxRounds - currentRound + 1;
+
+                if (roundsLeft < 0)
+                    roundsLeft = 0;
+
+                return (currentRound, maxRounds);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[InGameHUD] Error getting round info: {ex.Message}");
+                Console.WriteLine($"[InGameHUD] {ex.StackTrace}");
+                return (0, 0);
+            }
+        }
+
+        private string GetMapTimeDisplay()
+        {
+            if (IsInWarmup())
+            {
+                return _localizer["hud.warmuptime"];
+            }
+
+            if (Config.MapTimeMode == MapTimeMode.TimeLimit)
+            {
+                var (minutes, seconds) = GetMapTimeRemaining();
+                return _localizer["hud.map_time_remaining", minutes, seconds];
+            }
+            else
+            {
+                var (currentRound, maxRounds) = GetMapRoundInfo();
+                return _localizer["hud.map_round_info", currentRound, maxRounds];
+            }
+        }
+
         private void UpdatePlayerHUDSync(CCSPlayerController player)
         {
             if (player == null || !player.IsValid) return;
@@ -206,6 +307,11 @@ namespace InGameHUD
 
                 hudBuilder.AppendLine(_localizer["hud.greeting", player.PlayerName]);
                 hudBuilder.AppendLine(_localizer["hud.separator"]);
+
+                if (Config.ShowMapTime)
+                {
+                    hudBuilder.AppendLine(GetMapTimeDisplay());
+                }
 
                 if (Config.ShowTime)
                 {
