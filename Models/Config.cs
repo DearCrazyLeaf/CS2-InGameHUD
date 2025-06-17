@@ -37,6 +37,9 @@ namespace InGameHUD.Models
         [JsonPropertyName("show_time")]
         public bool ShowTime { get; set; } = true;
 
+        [JsonPropertyName("show_map_time")]
+        public bool ShowMapTime { get; set; } = true;
+
         [JsonPropertyName("show_ping")]
         public bool ShowPing { get; set; } = true;
 

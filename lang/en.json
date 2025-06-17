@@ -1,6 +1,7 @@
 {
   "hud.greeting": "Hello! [{0}]",
   "hud.separator": "===================",
+  "hud.map_time_remaining": "Map Time: {0}m{1}s",
   "hud.current_time": "Current Time: {0}",
   "hud.ping": "Ping: {0} ms",
   "hud.kda": "KDA: {0}/{1}/{2}",
