@@ -1,6 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
 using InGameHUD.Models;
-using System.IO;
 using Dapper;
 
 namespace InGameHUD.Managers

@@ -1,7 +1,6 @@
 ﻿using System.Drawing;
 using System.Text.Json.Serialization;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Utils;
 
 namespace InGameHUD.Models
 {
