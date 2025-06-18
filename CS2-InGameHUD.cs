@@ -22,7 +22,7 @@ namespace InGameHUD
     public class InGameHUD : BasePlugin, IPluginConfig<Config>
     {
         public override string ModuleName => "InGame HUD";
-        public override string ModuleVersion => "1.0.0";
+        public override string ModuleVersion => "1.3.0";
         public override string ModuleAuthor => "DearCrazyLeaf";
         public override string ModuleDescription => "Displays customizable HUD for players";
         private int _tickCounter = 0;
@@ -49,15 +49,6 @@ namespace InGameHUD
         {
             try
             {
-                var capability = new PluginCapability<IGameHUDAPI>("gamehud:api");
-                _api = capability.Get();
-
-                if (_api == null)
-                {
-                    Console.WriteLine("[InGameHUD] GameHUDAPI not found!");
-                    throw new Exception("GameHUDAPI not found!");
-                }
-
                 _db = new DatabaseManager(Config);
                 try
                 {
@@ -118,6 +109,27 @@ namespace InGameHUD
         public override void OnAllPluginsLoaded(bool hotReload)
         {
             base.OnAllPluginsLoaded(hotReload);
+
+            try
+            {
+                Console.WriteLine("[InGameHUD] Attempting to load GameHUDAPI...");
+                PluginCapability<IGameHUDAPI> CapabilityCP = new("gamehud:api");
+                _api = IGameHUDAPI.Capability.Get();
+
+                if (_api != null)
+                {
+                    Console.WriteLine("[InGameHUD] GameHUDAPI loaded successfully!");
+                }
+                else
+                {
+                    Console.WriteLine("[InGameHUD] GameHUDAPI not found. HUD features will not be available.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _api = null;
+                Console.WriteLine($"[InGameHUD] Error loading GameHUDAPI: {ex.Message}");
+            }
 
             try
             {
@@ -603,11 +615,9 @@ namespace InGameHUD
 
         private (Vector, PointWorldTextJustifyHorizontal_t) GetHUDPosition(HUDPosition position)
         {
-            // 获取原始HUD位置和水平对齐方式
             PositionConfig baseConfig;
             PointWorldTextJustifyHorizontal_t justification;
 
-            // 根据位置预设获取基础配置和对齐方式
             switch (position)
             {
                 case HUDPosition.TopLeft:
@@ -636,7 +646,6 @@ namespace InGameHUD
                     break;
             }
 
-            // 返回原始位置和对齐方式 (自适应调整将在UpdatePlayerHUDSync中处理)
             return (new Vector(baseConfig.XOffset, baseConfig.YOffset, baseConfig.ZDistance), justification);
         }
 
