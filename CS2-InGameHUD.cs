@@ -400,7 +400,7 @@ namespace InGameHUD
                     var lastSignInRaw = playerData.CustomData["last_signin"];
                     if (DateTime.TryParse(lastSignInRaw, out var lastSignInDt))
                     {
-                        int daysAgo = (DateTime.Now.Date - lastSignInDt.Date).Days;
+                        int daysAgo = Math.Max(0, (DateTime.Now.Date - lastSignInDt.Date).Days);
                         string display = daysAgo == 0
                             ? _localizer["hud.today"]
                             : _localizer["hud.days_ago", daysAgo];
