@@ -74,6 +74,7 @@ The plugin's configuration file (`InGameHUD.json`) contains the following settin
   "show_announcement": true,         // Display announcement content
   "text_color": "Orange",            // HUD text color
   "mysql_connection": {              // MySQL database configuration
+    "use_mysql": true,               // Enable/disable MySQL connection, set to false it will use SQLite instead
     "host": "",                      // Database hostname or IP
     "port": 3306,                    // Database port
     "database": "",                  // Database name
@@ -342,6 +343,7 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
   "show_announcement": true,         // 显示公告内容
   "text_color": "Orange",            // HUD文字颜色
   "mysql_connection": {              // MySQL数据库配置
+    "use_mysql": true,               // 启用/禁用 MySQL 连接，设置为 false 则使用 SQLite
     "host": "",                      // 数据库主机名或IP
     "port": 3306,                    // 数据库端口
     "database": "",                  // 数据库名称
