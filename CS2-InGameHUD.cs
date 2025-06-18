@@ -2,7 +2,6 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Commands;
-using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Utils;
 using InGameHUD.Models;
 using InGameHUD.Managers;
@@ -12,7 +11,6 @@ using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Core.Capabilities;
 using CS2_GameHUDAPI;
 using StoreApi;
-using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.Extensions.Localization;
 using CounterStrikeSharp.API.Modules.Cvars;
 
