@@ -106,6 +106,9 @@ namespace InGameHUD.Models
 
     public class MySqlSettings
     {
+        [JsonPropertyName("use_mysql")]
+        public bool Enabled { get; set; } = false;
+
         [JsonPropertyName("host")]
         public string Host { get; set; } = "localhost";
 

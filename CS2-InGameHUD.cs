@@ -49,26 +49,30 @@ namespace InGameHUD
         {
             try
             {
-                _db = new DatabaseManager(Config);
+                _db = new DatabaseManager(Config, ModuleDirectory);
                 try
                 {
-                    var connectionTask = _db.TestConnection();
-                    connectionTask.Wait();
-                    var (success, error) = connectionTask.Result;
+                    var initializeTask = _db.InitializeAsync();
+                    initializeTask.Wait();
+                    var (success, error) = initializeTask.Result;
                     if (!success)
                     {
-                        Console.WriteLine($"[InGameHUD] Database connection failed: {error}");
+                        Console.WriteLine($"[InGameHUD] Database initialization failed: {error}");
                         _dbConnected = false;
                     }
                     else
                     {
-                        Console.WriteLine("[InGameHUD] Database connected successfully!");
+                        Console.WriteLine("[InGameHUD] Database initialized successfully!");
                         _dbConnected = true;
                     }
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"[InGameHUD] Database initialization error: {ex.Message}");
+                    if (ex.InnerException != null)
+                    {
+                        Console.WriteLine($"[InGameHUD] Inner exception: {ex.InnerException.Message}");
+                    }
                     _dbConnected = false;
                 }
 
@@ -445,22 +449,29 @@ namespace InGameHUD
 
         private void LoadPlayerSettingsSync(CCSPlayerController player)
         {
-            if (!_dbConnected || _db == null || player == null || !player.IsValid) return;
+            if (player == null || !player.IsValid) return;
+
+            var steamId = player.SteamID.ToString();
 
             try
             {
-                var steamId = player.SteamID.ToString();
-                var settingsTask = _db.LoadPlayerSettings(steamId);
-                settingsTask.Wait();
-                _playerCache[steamId] = settingsTask.Result;
+                if (_db != null && _dbConnected)
+                {
+                    var settingsTask = _db.LoadPlayerSettings(steamId);
+                    settingsTask.Wait();
+                    _playerCache[steamId] = settingsTask.Result;
+                    Console.WriteLine($"[InGameHUD] Settings loaded for {player.PlayerName}");
+                }
+                else
+                {
+                    _playerCache[steamId] = new PlayerData(steamId);
+                    Console.WriteLine($"[InGameHUD] Default settings created for {player.PlayerName} (no database)");
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[InGameHUD] Error loading settings for {player.PlayerName}: {ex.Message}");
-                if (player != null && player.IsValid)
-                {
-                    _playerCache[player.SteamID.ToString()] = new PlayerData(player.SteamID.ToString());
-                }
+                _playerCache[steamId] = new PlayerData(steamId);
             }
         }
 
@@ -566,7 +577,45 @@ namespace InGameHUD
             if (player == null || !player.IsValid || player.IsBot)
                 return HookResult.Continue;
 
-            LoadPlayerSettingsSync(player);
+            var steamId = player.SteamID.ToString();
+
+            try
+            {
+                LoadPlayerSettingsSync(player);
+
+                if (!_playerCache.ContainsKey(steamId))
+                {
+                    _playerCache[steamId] = new PlayerData(steamId);
+                    Console.WriteLine($"[InGameHUD] Created default settings for {player.PlayerName}");
+                }
+
+                Server.NextFrame(() =>
+                {
+                    try
+                    {
+                        if (player != null && player.IsValid && !player.IsBot &&
+                            player.PawnIsAlive && player.TeamNum != (int)CsTeam.Spectator)
+                        {
+                            if (_playerCache.TryGetValue(steamId, out var playerData) &&
+                                playerData.HUDEnabled && _api != null)
+                            {
+                                Console.WriteLine($"[InGameHUD] Auto-showing HUD for {player.PlayerName}");
+                                UpdatePlayerHUDSync(player);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[InGameHUD] Error in delayed HUD display: {ex.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[InGameHUD] Error in OnPlayerConnect: {ex.Message}");
+                _playerCache[steamId] = new PlayerData(steamId);
+            }
+
             return HookResult.Continue;
         }
 
@@ -580,9 +629,8 @@ namespace InGameHUD
             var steamId = player.SteamID.ToString();
             if (_playerCache.ContainsKey(steamId))
             {
-                _api?.Native_GameHUD_Remove(player, MAIN_HUD_CHANNEL);
-                SavePlayerSettingsSync(player);
                 _playerCache.Remove(steamId);
+                Console.WriteLine($"[InGameHUD] Removed player data for {player.PlayerName} on disconnect");
             }
 
             return HookResult.Continue;
