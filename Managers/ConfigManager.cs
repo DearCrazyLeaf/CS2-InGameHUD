@@ -5,7 +5,7 @@ namespace InGameHUD.Managers
 {
     public class ConfigManager
     {
-        public Config Config { get; private set; }
+        public Config Config { get; private set; } = new Config();
 
         public ConfigManager(string moduleDirectory)
         {
