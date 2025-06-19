@@ -1,14 +1,13 @@
-﻿<div>
-    <a href="#中文版介绍" style="margin-left: 0; text-decoration: none;"><img src="https://img.shields.io/badge/跳转到中文版-中文介绍-red?style=for-the-badge&logo=gitbook&logoColor=white" alt="中文介绍"></a>
-    <a href="https://www.gnu.org/licenses/gpl-3.0.txt" target="_blank" style="margin-left: 5px; text-decoration: none;"><img src="https://img.shields.io/badge/License-GPL%203.0-orange?style=for-the-badge&logo=gnu" alt="GPL v3 License"></a>
-    <a href="https://github.com/DearCrazyLeaf/CS2-InGameHUD/issues" target="_blank" style="margin-left: 5px; text-decoration: none;"><img src="https://img.shields.io/github/issues/DearCrazyLeaf/CS2-InGameHUD?style=for-the-badge&logo=target" alt="Issues"></a>
-    <a href="https://github.com/DearCrazyLeaf/CS2-InGameHUD/pulls" target="_blank" style="margin-left: 5px; text-decoration: none;"><img src="https://img.shields.io/github/issues-pr/DearCrazyLeaf/CS2-InGameHUD?style=for-the-badge&logo=git&logoColor=white" alt="PRs"></a>
-    <a href="https://github.com/DearCrazyLeaf/CS2-InGameHUD/stargazers" target="_blank" style="margin-left: 10px; text-decoration: none;"><img src="https://img.shields.io/github/stars/DearCrazyLeaf/CS2-AutoUpdateReboot-PoweshellScript?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="GitHub Stars"></a>
-</div>
-
+﻿
 ---
 
 # CS2-InGameHUD
+
+[![中文版介绍](https://img.shields.io/badge/跳转到中文版-中文介绍-red)](https://github.com/DearCrazyLeaf/CS2-InGameHUD#中文版介绍)
+[![License](https://img.shields.io/badge/License-GPL%203.0-orange)](https://www.gnu.org/licenses/gpl-3.0.txt)
+[![Issues](https://img.shields.io/github/issues/DearCrazyLeaf/CS2-InGameHUD?color=darkgreen)](https://github.com/DearCrazyLeaf/CS2-InGameHUD/issues)
+[![Pull Requests](https://img.shields.io/github/issues-pr/DearCrazyLeaf/CS2-InGameHUD?color=blue)](https://github.com/DearCrazyLeaf/CS2-InGameHUD/pulls)
+[![GitHub Stars](https://img.shields.io/github/stars/DearCrazyLeaf/CS2-InGameHUD?color=yellow)](https://github.com/DearCrazyLeaf/CS2-InGameHUD/stargazers)
 
 **A customizable in-game HUD plugin for Counter-Strike 2 servers that displays various information to players in a clean, configurable format that can be positioned anywhere on the screen**
 
