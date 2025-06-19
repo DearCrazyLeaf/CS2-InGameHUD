@@ -5,7 +5,13 @@
 	  <ImplicitUsings>enable</ImplicitUsings>
 	  <Nullable>enable</Nullable>
 	  <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <RuntimeIdentifiers>win-x64;linux-x64</RuntimeIdentifiers>
+      <RuntimeIdentifiers>win-x64;linux-x64</RuntimeIdentifiers>
+      <PackageId>CS2-InGameHUD</PackageId>
+      <Authors>DearCrazyLeaf</Authors>
+      <Description>A CS2-Ingame HUD menu plugin built on CounterStrikeSharp</Description>
+      <RepositoryUrl>https://github.com/DearCrazyLeaf/CS2-InGameHUD</RepositoryUrl>
+      <RepositoryType>git</RepositoryType>
+      <PackageTags>counterstrikesharp;cs2;plugin;hud</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
