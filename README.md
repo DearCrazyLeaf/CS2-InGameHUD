@@ -1,14 +1,16 @@
 ﻿# CS2-InGameHUD
 
 [![中文版介绍](https://img.shields.io/badge/跳转到中文版-中文介绍-red)](#中文版介绍)
+[![Release](https://img.shields.io/github/v/release/DearCrazyLeaf/CS2-InGameHUD?include_prereleases&color=blueviolet)](https://github.com/DearCrazyLeaf/CS2-InGameHUD/releases/latest)
 [![License](https://img.shields.io/badge/License-GPL%203.0-orange)](https://www.gnu.org/licenses/gpl-3.0.txt)
 [![Issues](https://img.shields.io/github/issues/DearCrazyLeaf/CS2-InGameHUD?color=darkgreen)](https://github.com/DearCrazyLeaf/CS2-InGameHUD/issues)
 [![Pull Requests](https://img.shields.io/github/issues-pr/DearCrazyLeaf/CS2-InGameHUD?color=blue)](https://github.com/DearCrazyLeaf/CS2-InGameHUD/pulls)
+[![Downloads](https://img.shields.io/github/downloads/DearCrazyLeaf/CS2-InGameHUD/total?color=brightgreen)](https://github.com/DearCrazyLeaf/CS2-InGameHUD/releases)
 [![GitHub Stars](https://img.shields.io/github/stars/DearCrazyLeaf/CS2-InGameHUD?color=yellow)](https://github.com/DearCrazyLeaf/CS2-InGameHUD/stargazers)
 
 **A customizable in-game HUD plugin for Counter-Strike 2 servers that displays various information to players in a clean, configurable format that can be positioned anywhere on the screen**
 
-![a1cb7966-3c40-419d-89bd-69b4311a025a](https://github.com/user-attachments/assets/c2ef4fc1-64f0-4421-876f-7ff6f40934eb)
+![47c6624b-44d7-4832-961d-b32c54f81e3f](https://github.com/user-attachments/assets/f8c53ed9-6a19-46c4-a233-8a81f1159ce4)
 
 ## Features
 
@@ -276,10 +278,12 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
 # CS2-InGameHUD
 
 [![English Version](https://img.shields.io/badge/Back_to_English-English-blue)](#CS2-InGameHUD)
-[![License](https://img.shields.io/badge/License-GPL%203.0-orange)](https://www.gnu.org/licenses/gpl-3.0.txt)
-[![Issues](https://img.shields.io/github/issues/DearCrazyLeaf/CS2-InGameHUD?color=darkgreen)](https://github.com/DearCrazyLeaf/CS2-InGameHUD/issues)
-[![Pull Requests](https://img.shields.io/github/issues-pr/DearCrazyLeaf/CS2-InGameHUD?color=blue)](https://github.com/DearCrazyLeaf/CS2-InGameHUD/pulls)
-[![GitHub Stars](https://img.shields.io/github/stars/DearCrazyLeaf/CS2-InGameHUD?color=yellow)](https://github.com/DearCrazyLeaf/CS2-InGameHUD/stargazers)
+[![Release](https://img.shields.io/github/v/release/DearCrazyLeaf/CS2-InGameHUD?include_prereleases&color=blueviolet&label=最新版本)](https://github.com/DearCrazyLeaf/CS2-InGameHUD/releases/latest)
+[![License](https://img.shields.io/badge/许可证-GPL%203.0-orange)](https://www.gnu.org/licenses/gpl-3.0.txt)
+[![Issues](https://img.shields.io/github/issues/DearCrazyLeaf/CS2-InGameHUD?color=darkgreen&label=反馈)](https://github.com/DearCrazyLeaf/CS2-InGameHUD/issues)
+[![Pull Requests](https://img.shields.io/github/issues-pr/DearCrazyLeaf/CS2-InGameHUD?color=blue&label=请求)](https://github.com/DearCrazyLeaf/CS2-InGameHUD/pulls)
+[![Downloads](https://img.shields.io/github/downloads/DearCrazyLeaf/CS2-InGameHUD/total?color=brightgreen&label=下载)](https://github.com/DearCrazyLeaf/CS2-InGameHUD/releases)
+[![GitHub Stars](https://img.shields.io/github/stars/DearCrazyLeaf/CS2-InGameHUD?color=yellow&label=标星)](https://github.com/DearCrazyLeaf/CS2-InGameHUD/stargazers)
 
 **一个用于 Counter-Strike 2 服务器的可自定义游戏内 HUD 插件，该插件以简洁、可配置的格式向玩家展示各种信息，可以放置在屏幕的任何位置**
 
