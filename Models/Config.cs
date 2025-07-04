@@ -142,16 +142,50 @@ namespace InGameHUD.Models
         public CustomTableSettings Playtime { get; set; } = new()
         {
             Enabled = true,
+            SchemaName = "SchemaName",
             TableName = "players_stats",
-            ColumnName = "playtime"
+            ColumnName = "playtime",
+            ColumnSteamID = "steam_id"
         };
 
         [JsonPropertyName("signin")]
         public CustomTableSettings Signin { get; set; } = new()
         {
             Enabled = true,
+            SchemaName = "SchemaName",
             TableName = "player_signin",
-            ColumnName = "last_signin"
+            ColumnName = "last_signin",
+            ColumnSteamID = "steamid64"
+        };
+
+        [JsonPropertyName("customdisplay1")]
+        public CustomTableSettings Display1 { get; set; } = new()
+        {
+            Enabled = false,
+            SchemaName = "SchemaName",
+            TableName = "TableName",
+            ColumnName = "ColumnName",
+            ColumnSteamID = "ColumnSteamID"
+        };
+
+        [JsonPropertyName("customdisplay2")]
+        public CustomTableSettings Display2 { get; set; } = new()
+        {
+            Enabled = false,
+            SchemaName = "SchemaName",
+            TableName = "TableName",
+            ColumnName = "ColumnName",
+            ColumnSteamID = "ColumnSteamID"
+        };
+
+        [JsonPropertyName("customdisplay3")]
+        public CustomTableSettings Display3 { get; set; } = new()
+        {
+            Enabled = false,
+            SchemaName = "SchemaName",
+            TableName = "TableName",
+            ColumnName = "ColumnName",
+            ColumnSteamID = "ColumnSteamID"
         };
     }
 
@@ -166,10 +200,16 @@ namespace InGameHUD.Models
         [JsonPropertyName("enabled")]
         public bool Enabled { get; set; }
 
+        [JsonPropertyName("schema_name")]
+        public string SchemaName { get; set; } = "";
+
         [JsonPropertyName("table_name")]
         public string TableName { get; set; } = "";
 
         [JsonPropertyName("column_name")]
         public string ColumnName { get; set; } = "";
+
+        [JsonPropertyName("column_steamid")]
+        public string ColumnSteamID { get; set; } = "";
     }
 }

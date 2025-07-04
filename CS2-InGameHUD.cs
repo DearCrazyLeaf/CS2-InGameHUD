@@ -20,7 +20,7 @@ namespace InGameHUD
     public class InGameHUD : BasePlugin, IPluginConfig<Config>
     {
         public override string ModuleName => "InGame HUD";
-        public override string ModuleVersion => "1.4.0";
+        public override string ModuleVersion => "1.5.0";
         public override string ModuleAuthor => "DearCrazyLeaf";
         public override string ModuleDescription => "Displays customizable HUD for players";
         private int _tickCounter = 0;
@@ -378,12 +378,12 @@ namespace InGameHUD
                 {
                     try
                     {
-                        Console.WriteLine($"[InGameHUD] Attempting to get credits for {player.PlayerName}");
+                        // Console.WriteLine($"[InGameHUD] Attempting to get credits for {player.PlayerName}");
 
                         if (player != null && player.IsValid)
                         {
                             int playerCredits = _storeApi.GetPlayerCredits(player);
-                            Console.WriteLine($"[InGameHUD] Credits for {player.PlayerName}: {playerCredits}");
+                            // Console.WriteLine($"[InGameHUD] Credits for {player.PlayerName}: {playerCredits}");
 
                             playerData.CustomData["credits"] = playerCredits.ToString();
 
@@ -391,7 +391,7 @@ namespace InGameHUD
                         }
                         else
                         {
-                            Console.WriteLine("[InGameHUD] Player invalid when trying to get credits");
+                            // Console.WriteLine("[InGameHUD] Player invalid when trying to get credits");
                         }
                     }
                     catch (Exception ex)
@@ -425,7 +425,23 @@ namespace InGameHUD
                     var minutes = (playtime % 3600) / 60;
                     hudBuilder.AppendLine(_localizer["hud.playtime", hours, minutes]);
                 }
+
+                if (playerData.CustomData.ContainsKey("customdisplay1"))
+                {
+                    hudBuilder.AppendLine(_localizer["hud.customdisplay1", playerData.CustomData["customdisplay1"]]);
+                }
+
+                if (playerData.CustomData.ContainsKey("customdisplay2"))
+                {
+                    hudBuilder.AppendLine(_localizer["hud.customdisplay2", playerData.CustomData["customdisplay2"]]);
+                }
+
+                if (playerData.CustomData.ContainsKey("customdisplay3"))
+                {
+                    hudBuilder.AppendLine(_localizer["hud.customdisplay3", playerData.CustomData["customdisplay3"]]);
+                }
                 // -----------------------------------------------------------------结束
+
                 hudBuilder.AppendLine(_localizer["hud.separator_bottom"]);
                 hudBuilder.AppendLine(_localizer["hud.hint_toggle"]);
                 hudBuilder.AppendLine(_localizer["hud.hint_help"]);
