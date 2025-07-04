@@ -137,20 +137,37 @@ namespace InGameHUD.Managers
                 {
                     try
                     {
-                        var playtimeTable = _config.CustomData.Playtime.TableName;
-                        var playtimeColumn = _config.CustomData.Playtime.ColumnName;
-
-                        string playtimeQuery = $@"
-                            SELECT `{playtimeColumn}` 
-                            FROM `{_config.MySqlConnection.Database}`.`{playtimeTable}` 
-                            WHERE steam_id = @SteamId;";
-
-                        var playtimeResult = await connection.ExecuteScalarAsync<object>(
-                            playtimeQuery, new { SteamId = steamId });
-
-                        if (playtimeResult != null && playtimeResult != DBNull.Value)
+                        var settings = _config.CustomData.Playtime;
+                        
+                        if (string.IsNullOrEmpty(settings.TableName) || 
+                            string.IsNullOrEmpty(settings.ColumnName) || 
+                            string.IsNullOrEmpty(settings.ColumnSteamID))
                         {
-                            result["playtime"] = playtimeResult.ToString() ?? "0";
+                            Console.WriteLine("[InGameHUD] Error: Missing configuration for playtime");
+                        }
+                        else
+                        {
+                            var schemaName = string.IsNullOrEmpty(settings.SchemaName) 
+                                ? _config.MySqlConnection.Database 
+                                : settings.SchemaName;
+
+                            string query = $@"
+                                SELECT `{settings.ColumnName}` 
+                                FROM `{schemaName}`.`{settings.TableName}` 
+                                WHERE `{settings.ColumnSteamID}` = @SteamId;";
+
+                            var playtimeResult = await connection.ExecuteScalarAsync<object>(
+                                query, new { SteamId = steamId });
+
+                            if (playtimeResult != null && playtimeResult != DBNull.Value)
+                            {
+                                result["playtime"] = playtimeResult.ToString() ?? "0";
+                                //Console.WriteLine($"[InGameHUD] Successfully retrieved playtime data from database '{schemaName}': {result["playtime"]}");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"[InGameHUD] No playtime data found in database '{schemaName}'");
+                            }
                         }
                     }
                     catch (Exception ex)
@@ -163,27 +180,98 @@ namespace InGameHUD.Managers
                 {
                     try
                     {
-                        var signinTable = _config.CustomData.Signin.TableName;
-                        var signinColumn = _config.CustomData.Signin.ColumnName;
-
-                        string signinQuery = $@"
-                            SELECT `{signinColumn}` 
-                            FROM `{_config.MySqlConnection.Database}`.`{signinTable}` 
-                            WHERE steamid64 = @SteamId;";
-
-                        var signinResult = await connection.ExecuteScalarAsync<object>(
-                            signinQuery, new { SteamId = steamId });
-
-                        if (signinResult != null && signinResult != DBNull.Value)
+                        var settings = _config.CustomData.Signin;
+                        
+                        if (string.IsNullOrEmpty(settings.TableName) || 
+                            string.IsNullOrEmpty(settings.ColumnName) || 
+                            string.IsNullOrEmpty(settings.ColumnSteamID))
                         {
-                            result["last_signin"] = signinResult.ToString()!;
+                            Console.WriteLine("[InGameHUD] Error: Missing configuration for signin");
+                        }
+                        else
+                        {
+                            var schemaName = string.IsNullOrEmpty(settings.SchemaName) 
+                                ? _config.MySqlConnection.Database 
+                                : settings.SchemaName;
+
+                            string query = $@"
+                                SELECT `{settings.ColumnName}` 
+                                FROM `{schemaName}`.`{settings.TableName}` 
+                                WHERE `{settings.ColumnSteamID}` = @SteamId;";
+
+                            var signinResult = await connection.ExecuteScalarAsync<object>(
+                                query, new { SteamId = steamId });
+
+                            if (signinResult != null && signinResult != DBNull.Value)
+                            {
+                                result["last_signin"] = signinResult.ToString()!;
+                                //Console.WriteLine($"[InGameHUD] Successfully retrieved signin data from database '{schemaName}': {result["last_signin"]}");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"[InGameHUD] No signin data found in database '{schemaName}'");
+                            }
                         }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[InGameHUD] Error getting last signin from MySQL: {ex.Message}");
+                        Console.WriteLine($"[InGameHUD] Error getting signin data from MySQL: {ex.Message}");
                     }
                 }
+
+                var customDisplays = new Dictionary<string, CustomTableSettings>
+                {
+                    {"customdisplay1", _config.CustomData.Display1},
+                    {"customdisplay2", _config.CustomData.Display2},
+                    {"customdisplay3", _config.CustomData.Display3}
+                };
+
+                foreach (var display in customDisplays)
+                {
+                    var key = display.Key;
+                    var settings = display.Value;
+                    
+                    if (settings.Enabled)
+                    {
+                        try
+                        {
+                            if (string.IsNullOrEmpty(settings.TableName) || 
+                                string.IsNullOrEmpty(settings.ColumnName) || 
+                                string.IsNullOrEmpty(settings.ColumnSteamID))
+                            {
+                                Console.WriteLine($"[InGameHUD] Error: Missing configuration for {key}");
+                                continue;
+                            }
+
+                            var schemaName = string.IsNullOrEmpty(settings.SchemaName) 
+                                ? _config.MySqlConnection.Database 
+                                : settings.SchemaName;
+
+                            string query = $@"
+                                SELECT `{settings.ColumnName}` 
+                                FROM `{schemaName}`.`{settings.TableName}` 
+                                WHERE `{settings.ColumnSteamID}` = @SteamId;";
+
+                            var customResult = await connection.ExecuteScalarAsync<object>(
+                                query, new { SteamId = steamId });
+
+                            if (customResult != null && customResult != DBNull.Value)
+                            {
+                                result[key] = customResult.ToString()!;
+                                //Console.WriteLine($"[InGameHUD] Successfully retrieved {key} data from database '{schemaName}': {result[key]}");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"[InGameHUD] No data found for {key} in database '{schemaName}'");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[InGameHUD] Error getting {key} from MySQL: {ex.Message}");
+                        }
+                    }
+                }
+
                 return result;
             }
             catch (Exception ex)
