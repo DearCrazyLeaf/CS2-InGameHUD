@@ -20,7 +20,7 @@ namespace InGameHUD
     public class InGameHUD : BasePlugin, IPluginConfig<Config>
     {
         public override string ModuleName => "InGame HUD";
-        public override string ModuleVersion => "1.3.0";
+        public override string ModuleVersion => "1.4.0";
         public override string ModuleAuthor => "DearCrazyLeaf";
         public override string ModuleDescription => "Displays customizable HUD for players";
         private int _tickCounter = 0;
