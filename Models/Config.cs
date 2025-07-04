@@ -7,7 +7,7 @@ namespace InGameHUD.Models
     public class Config : IBasePluginConfig
     {
         [JsonPropertyName("version")]
-        public int Version { get; set; } = 1;
+        public int Version { get; set; } = 5;
 
         [JsonPropertyName("font_size")]
         public int FontSize { get; set; } = 20;
@@ -74,6 +74,12 @@ namespace InGameHUD.Models
                 }
             }
         }
+
+        [JsonPropertyName("hudcommand")]
+        public List<string> HUDCommands { get; set; } = ["hud","togglehud"];
+
+        [JsonPropertyName("poscommand")]
+        public List<string> POSCommands { get; set; } = ["hudpos", "changepos"];
 
         [JsonPropertyName("mysql_connection")]
         public MySqlSettings MySqlConnection { get; set; } = new();
