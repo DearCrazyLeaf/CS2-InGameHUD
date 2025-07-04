@@ -93,13 +93,38 @@ The plugin's configuration file (`InGameHUD.json`) contains the following settin
     },
     "playtime": {                    // Player playtime display (customized, see custom content section to modify if you don't have this system)
       "enabled": true,               // Enable/disable playtime display
+      "schema_name": "SchemaName",   // Database name, for specifying target database
       "table_name": "time_table",    // Database table name for playtime
-      "column_name": "time"          // Database column name for playtime
+      "column_name": "time",         // Database column name for playtime
+      "column_steamid": "steam_id"   // SteamID field name in the playtime table that records player's steamid
     },
     "signin": {                      // Last sign-in display (customized, see custom content section to modify if you don't have this system)
       "enabled": true,               // Enable/disable sign-in display
+      "schema_name": "SchemaName",   // Database name, for specifying target database
       "table_name": "signin_table",  // Database table for sign-in records
-      "column_name": "signin_time"   // Database column for sign-in timestamp
+      "column_name": "signin_time",  // Database column for sign-in timestamp
+      "column_steamid": "steamid64"  // SteamID field name in the signin table that records player's steamid
+    },
+    "customdisplay1": {              // Custom display (can be used to show other custom content)
+      "enabled": false,              // Enable/disable custom display
+      "schema_name": "SchemaName",   // Database name, for specifying target database
+      "table_name": "TableName",     // Database table name
+      "column_name": "ColumnName",   // Database column name
+      "column_steamid": "SteamID"    // SteamID field name in the table that records player's steamid
+    },
+    "customdisplay2": {              // Custom display (can be used to show other custom content)
+      "enabled": false,              // Enable/disable custom display
+      "schema_name": "SchemaName",   // Database name, for specifying target database
+      "table_name": "TableName",     // Database table name
+      "column_name": "ColumnName",   // Database column name
+      "column_steamid": "SteamID"    // SteamID field name in the table that records player's steamid
+    },
+    "customdisplay3": {              // Custom display (can be used to show other custom content)
+      "enabled": false,              // Enable/disable custom display
+      "schema_name": "SchemaName",   // Database name, for specifying target database
+      "table_name": "TableName",     // Database table name
+      "column_name": "ColumnName",   // Database column name
+      "column_steamid": "SteamID"    // SteamID field name in the table that records player's steamid
     }
   },
   "positions": {                     // HUD preset position parameter settings
@@ -145,21 +170,29 @@ The plugin's configuration file (`InGameHUD.json`) contains the following settin
 
 | Parameter              | Description                                                                 |
 |------------------------|-----------------------------------------------------------------------------|
-| `credits`              | Credits display module, developed only for schwarper/cs2-store system, displays player's store credits |
-| `playtime`             | Playtime module, developed only for k4system, displays player's game time recorded in k4system |
-| `signin`               | Recent sign-in time module, developed only for our sign-in system, displays most recent sign-in time |
-| `enabled`              | Whether to enable display, `true` enables, `false` disables. Note: using these features requires properly set tables and database connection! |
-| `table_name`           | Target table name to retrieve data from |
-| `column_name`          | Target column name (field) to retrieve data from |
+| `credits`              | Credits display module, developed only for schwarper/cs2-store system, displays player's store credits|
+| `playtime`             | Playtime module, developed only for k4system, displays player's game time recorded in k4system|
+| `signin`               | Recent sign-in time module, developed only for our sign-in system, displays most recent sign-in time|
+| `enabled`              | Whether to enable display, `true` enables, `false` disables. Note: using these features requires properly set tables and database connection!|
+| `schema_name`          | Database name, for specifying target database (optional, if not specified, uses the default database name from your MySQL connection)|
+| `table_name`           | Target table name to retrieve data from|
+| `column_name`          | Target column name (field) to retrieve data from|
+| `column_steamid`       | SteamID field name in the table that records player's steamid (customizable because table structures vary, especially for player SteamID fields) |
 
 ### How to use this module
-- The module's design logic is to retrieve the current player's `steamid`, match it with your specified table name and column name, get the corresponding player data from that table's column, and display it with a custom title through the language file. Currently, only two parameter types are provided: time and date.
+- The module's design logic is to retrieve the current player's steamid, match it with your specified table name and column name, get the corresponding player data from that table's column, and display it with a custom title through the language file.
 
-- Currently, only `playtime` and `signin` modules can be modified, with limitations due to targeted development.
+- In addition to the special `playtime` and `signin` modules, three fully customizable modules are provided. See below for modification methods.
 
-- In `playtime`, the table's `steamid` field name must be `steam_id`, and the data must be in seconds. The calculation method automatically converts it to `n hours n minutes` and prints it on the HUD.
+- First, there are three fully customizable message modules: `customdisplay1`, `customdisplay2`, and `customdisplay3`. You can modify these modules' table names, column names, steamid field names, etc. to directly retrieve the content you want.
 
-- In `signin`, the table's `steamid` field name must be `steamid64`, and the data must be in standard date format. The calculation method computes the difference between the retrieved data and the query time, retaining only the day parameter difference, and finally displays `n days ago` or `today`.
+- Note that information retrieved by these three modules must be content that needs to be printed directly to the HUD. The plugin won't perform any special processing and doesn't support time and date conversion.
+
+- Then there are the `playtime` and `signin` modules. These modules are targeted development for displaying time and date. You can modify the database name, table name, column name, and steamid field name of these modules to adapt them to your design logic.
+
+- For `playtime`, the data must be in seconds. The calculation method automatically converts it to `n hours n minutes` and prints it on the HUD.
+
+- For `signin`, the data must be in standard date format. The calculation method computes the difference between the retrieved data and the query time, retaining only the day parameter difference, and finally displays `n days ago` or `today`.
 
 - After modifying these parameters and correctly matching column names, please modify the language file at `...\addons\counterstrikesharp\plugins\CS2-InGameHUD\lang`. For example, for `en`:
 
@@ -177,11 +210,14 @@ The plugin's configuration file (`InGameHUD.json`) contains the following settin
   "hud.team": "Team: {0}",
   "hud.score": "Score: {0}",
   "hud.credits": "Credits: {0}",
-  "hud.last_signin": "Last Sign-in: {0}",     // Change "Last Sign-in" to your desired title to adapt to data retrieved from your table. Don't modify {0}!
+  "hud.last_signin": "Last Sign-in: {0}",         // Change "Last Sign-in" to your desired title to adapt to data retrieved from your table. Don't modify {0}!
   "hud.never_signed": "Never signed in or data anomaly",
   "hud.today": "Today",
   "hud.days_ago": "{0} days ago",
-  "hud.playtime": "Playtime: {0}h {1}m",      // Change "Playtime" to your desired title to adapt to data retrieved from your table. Don't modify {0}{1}!
+  "hud.playtime": "Playtime: {0}h {1}m",          // Change "Playtime" to your desired title to adapt to data retrieved from your table. Don't modify {0}{1}!
+  "hud.customdisplay1": "Custom Display 1: {0}",  // Custom display (can be used to show other custom content)
+  "hud.customdisplay2": "Custom Display 2: {0}",  // Custom display (can be used to show other custom content)
+  "hud.customdisplay3": "Custom Display 3: {0}",  // Custom display (can be used to show other custom content)
   "hud.separator_bottom": "===================",
   "hud.hint_toggle": "Custom message, you can write, !hud to toggle panel",
   "hud.hint_help": "Custom message, you can write, !help for help",
@@ -378,13 +414,38 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
     },
     "playtime": {                    // 玩家游戏时长显示（定制，如果您没有该系统请看自定义内容介绍来更换）
       "enabled": true,               // 启用/禁用游戏时长显示
+      "schema_name": "SchemaName",   // 数据库名称，用于指定目标库
       "table_name": "time_table",    // 游戏时长数据表名
-      "column_name": "time"          // 游戏时长字段名
+      "column_name": "time",         // 游戏时长字段名
+      "column_steamid": "steam_id"   // 游戏时长表中记录玩家的steamid字段名
     },
     "signin": {                      // 上次签到显示（定制，如果您没有该系统请看自定义内容介绍来更换）
       "enabled": true,               // 启用/禁用签到显示
+      "schema_name": "SchemaName",   // 数据库名称，用于指定目标库
       "table_name": "signin_table",  // 签到记录数据表名
-      "column_name": "signin_time"   // 签到时间字段名
+      "column_name": "signin_time",  // 签到时间字段名
+      "column_steamid": "steamid64"  // 签到表中记录玩家的steamid字段名
+    },
+    "customdisplay1": {              // 自定义显示（可用于显示其他自定义内容）
+      "enabled": false,              // 启用/禁用自定义显示
+      "schema_name": "SchemaName",   // 数据库名称，用于指定目标库
+      "table_name": "TableName",     // 数据表名
+      "column_name": "ColumnName",   // 数据列名
+      "column_steamid": "SteamID"    // 数据表中记录玩家的steamid字段名
+    },
+    "customdisplay2": {              // 自定义显示（可用于显示其他自定义内容）
+      "enabled": false,              // 启用/禁用自定义显示
+      "schema_name": "SchemaName",   // 数据库名称，用于指定目标库
+      "table_name": "TableName",     // 数据表名
+      "column_name": "ColumnName",   // 数据列名
+      "column_steamid": "SteamID"    // 数据表中记录玩家的steamid字段名
+    },
+    "customdisplay3": {              // 自定义显示（可用于显示其他自定义内容）
+      "enabled": false,              // 启用/禁用自定义显示
+      "schema_name": "SchemaName",   // 数据库名称，用于指定目标库
+      "table_name": "TableName",     // 数据表名
+      "column_name": "ColumnName",   // 数据列名
+      "column_steamid": "SteamID"    // 数据表中记录玩家的steamid字段名
     }
   },
   "positions": {                     // HUD预设位置参数设置
@@ -430,23 +491,31 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
 
 | 参数名称              | 描述                                                                          |
 |-----------------------|-------------------------------------------------------------------------------|
-| `credits`             | 积分显示模块，仅开发用于schwarper/cs2-store的商店系统，显示玩家商店中玩家拥有的积分 |
+| `credits`             | 积分显示模块，仅开发用于schwarper/cs2-store的商店系统，显示玩家商店中玩家拥有的积分|
 | `playtime`            | 游戏时长模块，仅开发用于k4system，用于显示k4系统中记录的玩家游戏时长               |
-| `signin`              | 最近签到时间模块，仅开发用于我们自己的签到系统，用于显示最近一次的签到时间           |
+| `signin`              | 最近签到时间模块，仅开发用于我们自己的签到系统，用于显示最近一次的签到时间         |
 | `enabled`             | 是否开启显示，`true`开启显示，`false`关闭，请注意，使用这些功能一定要设置好表并且连接好数据库，否则无效！|
+| `schema_name`         | 数据库名称，用于指定目标库（可选，不填写默认使用你填写数据库连接时的库名）      |
 | `table_name`          | 要获取的目标表名称                                                              |
-| `column_name`         | 要获取的目标列名称（字段）                                                       |
+| `column_name`         | 要获取的目标列名称（字段）                                                      |
+| `column_steamid`      | 数据表中记录玩家的steamid字段名（因为每个表结构不一样，尤其是记录玩家Steamid的部分，所以这里自定义化）|
 
 ### 对于这个模块的使用方法
-- 这个模块设计逻辑是，通过获取当前玩家的`steamid`，然后匹配你设置的表名称，列名称，获取对应玩家在这张表指定的列中的数据，然后通过lang文件自定义标题来显示这个数据，目前只提供了两种参数类型，时间和日期
+- 这个模块设计逻辑是，通过获取当前玩家的`steamid`，然后匹配你设置的表名称，列名称，获取对应玩家在这张表指定的列中的数据，然后通过lang文件自定义标题来显示这个数据
 
-- 目前仅提供修改`playtime`，`signin`两个模块，且存在限制，因为是定向开发
+- 除了`playtime`，`signin`两个比较特殊的模块之外，额外提供3个完全自定义模块，更改方法请看下面介绍
 
-- 在`playtime`中，匹配的表中记录的`steamid`字段名称为`steam_id`，且数据必须是以秒为单位，计算方法会自动计算成`n小时n分钟`然后打印在HUD上
+- 首先是3个完全可自定义的消息模块`customdisplay1`，`customdisplay2`,`customdisplay3`，你可以根据自己的需求来修改这3个模块的表名，列名，steamid字段名等内容来直接获取你想要的内容
 
-- 在`signin`中，匹配的表中记录的`steamid`字段名称为`steamid64`，且数据必须是标准日期格式，计算方法会根据日期计算获取的数据和查询的时刻日期差距，然后仅保留day参数的差距，最后打印显示`n天前`，`今天`的信息
+- 请注意，这3个模块获取的信息必须是需要直接打印到HUD的内容，插件不会进行任何特殊处理，且不支持时间和日期的转换
 
-- 修改完上述参数并且确切匹配了列名称之后，请修改位于`...\addons\counterstrikesharp\plugins\CS2-InGameHUD\lang`下对应的语言文件，以`zh-Hans`为例：
+- 然后是`playtime`和`signin`两个模块，这两个模块是定向开发的，用于显示时间和日期，你可以根据自己的需求来修改这两个模块的库名，表名，列名和steamid字段名来适配它们的设计逻辑
+
+- 在`playtime`中，数据必须是以秒为单位，计算方法会自动计算成`n小时n分钟`然后打印在HUD上
+
+- 在`signin`中，数据必须是标准日期格式，计算方法会根据日期计算获取的数据和查询的时刻日期差距，然后仅保留day参数的差距，最后打印显示`n天前`，`今天`的信息
+
+- 修改完上述参数之后，请修改位于`...\addons\counterstrikesharp\plugins\CS2-InGameHUD\lang`下对应的语言文件，以`zh-Hans`为例：
 
 ```json
 {
@@ -467,6 +536,9 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
   "hud.today": "今天",
   "hud.days_ago": "{0}天前",
   "hud.playtime": "游玩时长: {0}小时{1}分钟",  // 修改"游玩时长"为你想要显示的标题来适配从你数据表中获取的数据，请勿修改{0}{1}!
+  "hud.customdisplay1": "自定义显示 1: {0}",   // 自定义显示（可用于显示其他自定义内容）
+  "hud.customdisplay2": "自定义显示 2: {0}",   // 自定义显示（可用于显示其他自定义内容）
+  "hud.customdisplay3": "自定义显示 3: {0}",   // 自定义显示（可用于显示其他自定义内容）
   "hud.separator_bottom": "===================",
   "hud.hint_toggle": "自定义信息，你可以写，!hud开关面板",
   "hud.hint_help": "自定义信息，你可以写，!help查看帮助",
