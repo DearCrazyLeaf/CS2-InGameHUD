@@ -162,7 +162,7 @@ namespace InGameHUD.Managers
                             if (playtimeResult != null && playtimeResult != DBNull.Value)
                             {
                                 result["playtime"] = playtimeResult.ToString() ?? "0";
-                                Console.WriteLine($"[InGameHUD] Successfully retrieved playtime data from database '{schemaName}': {result["playtime"]}");
+                                //Console.WriteLine($"[InGameHUD] Successfully retrieved playtime data from database '{schemaName}': {result["playtime"]}");
                             }
                             else
                             {
@@ -205,7 +205,7 @@ namespace InGameHUD.Managers
                             if (signinResult != null && signinResult != DBNull.Value)
                             {
                                 result["last_signin"] = signinResult.ToString()!;
-                                Console.WriteLine($"[InGameHUD] Successfully retrieved signin data from database '{schemaName}': {result["last_signin"]}");
+                                //Console.WriteLine($"[InGameHUD] Successfully retrieved signin data from database '{schemaName}': {result["last_signin"]}");
                             }
                             else
                             {
@@ -258,7 +258,7 @@ namespace InGameHUD.Managers
                             if (customResult != null && customResult != DBNull.Value)
                             {
                                 result[key] = customResult.ToString()!;
-                                Console.WriteLine($"[InGameHUD] Successfully retrieved {key} data from database '{schemaName}': {result[key]}");
+                                //Console.WriteLine($"[InGameHUD] Successfully retrieved {key} data from database '{schemaName}': {result[key]}");
                             }
                             else
                             {
