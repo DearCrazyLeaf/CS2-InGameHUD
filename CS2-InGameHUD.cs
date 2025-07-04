@@ -74,8 +74,14 @@ namespace InGameHUD
                     _dbConnected = false;
                 }
 
-                AddCommand("hud", "Toggle HUD visibility", CommandToggleHUD);
-                AddCommand("hudpos", "Change HUD position (1-5)", CommandHUDPosition);
+                Config.HUDCommands.ForEach(hudcommand =>
+                {
+                    AddCommand($"css_{hudcommand}", "Toggle HUD visibility", CommandToggleHUD);
+                });
+                Config.POSCommands.ForEach(poscommand =>
+                {
+                    AddCommand($"css_{poscommand}", "Change HUD position (1-5)", CommandHUDPosition);
+                });
 
                 RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnect);
                 RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
