@@ -16,11 +16,11 @@ using CounterStrikeSharp.API.Modules.Cvars;
 
 namespace InGameHUD
 {
-    [MinimumApiVersion(318)]
+    [MinimumApiVersion(335)]
     public class InGameHUD : BasePlugin, IPluginConfig<Config>
     {
         public override string ModuleName => "InGame HUD";
-        public override string ModuleVersion => "1.5.0";
+        public override string ModuleVersion => "1.5.5";
         public override string ModuleAuthor => "DearCrazyLeaf";
         public override string ModuleDescription => "Displays customizable HUD for players";
         private int _tickCounter = 0;
