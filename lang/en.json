@@ -1,5 +1,5 @@
 {
-  "hud.greeting": "Hello! [{0}]",
+  "hud.greeting": "Player [{0}]",
   "hud.separator": "===================",
   "hud.map_time_remaining": "Map Time: {0}m{1}s",
   "hud.map_round_info": "Round: {0}/{1}",
@@ -36,5 +36,7 @@
   "hud.position_usage": "{Green}Usage: !hudpos <1-5>",
   "hud.position_help": "{Green}1:TopLeft 2:TopRight 3:BottomLeft 4:BottomRight 5:Center",
   "hud.position_changed": "{Green}HUD position has been changed",
-  "hud.position_invalid": "{Red}Invalid position! Use 1-5"
+  "hud.position_invalid": "{Red}Invalid position! Use 1-5",
+  "hud.tab_mode_enabled": "{Yellow}Scoreboard mode is enabled: Press TAB to show HUD (3s)",
+  "hud.tab_on_cooldown": "{Yellow}HUD is on cooldown. Please wait"
 }

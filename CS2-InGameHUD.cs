@@ -20,7 +20,7 @@ namespace InGameHUD
     public class InGameHUD : BasePlugin, IPluginConfig<Config>
     {
         public override string ModuleName => "InGame HUD";
-        public override string ModuleVersion => "1.5.9";
+        public override string ModuleVersion => "1.6.0";
         public override string ModuleAuthor => "DearCrazyLeaf";
         public override string ModuleDescription => "Displays customizable HUD for players";
         private int _tickCounter = 0;
@@ -32,6 +32,10 @@ namespace InGameHUD
         private bool _dbConnected = false;
         private readonly IStringLocalizer<InGameHUD> _localizer;
         public Config Config { get; set; } = new();
+
+        private readonly HashSet<ulong> _tabPrevDown = new();
+        private readonly Dictionary<ulong, float> _tabNextAllowed = new();
+
         public InGameHUD(IStringLocalizer<InGameHUD> localizer)
         {
             _localizer = localizer;
@@ -89,18 +93,57 @@ namespace InGameHUD
                 RegisterEventHandler<EventPlayerTeam>(OnPlayerTeam);
                 RegisterListener<Listeners.OnTick>(() =>
                 {
+                    // Tab 模式：按下边沿触发一次短暂显示，并基于配置时长设置冷却；冷却期内提示“冷却中”
+                    if (Config.HudToggleMode == 2)
+                    {
+                        foreach (var p in Utilities.GetPlayers())
+                        {
+                            if (p == null || !p.IsValid || p.IsBot) continue;
+                            if (!p.PawnIsAlive || p.TeamNum == (int)CsTeam.Spectator) continue;
+
+                            bool tabDown = p.Buttons.HasFlag(PlayerButtons.Scoreboard);
+                            ulong sid = p.SteamID;
+                            bool wasDown = _tabPrevDown.Contains(sid);
+
+                            if (tabDown && !wasDown)
+                            {
+                                float now = (float)Server.CurrentTime;
+                                float nextAllowed = _tabNextAllowed.TryGetValue(sid, out var ts) ? ts : 0f;
+                                if (now >= nextAllowed)
+                                {
+                                    UpdatePlayerHUDSync(p);
+                                    _tabNextAllowed[sid] = now + Config.HudTabDurationSec;
+                                }
+                                else
+                                {
+                                    p.PrintToChat(_localizer["hud.tab_on_cooldown"]);
+                                }
+
+                                _tabPrevDown.Add(sid);
+                            }
+                            else if (!tabDown && wasDown)
+                            {
+                                _tabPrevDown.Remove(sid);
+                            }
+                        }
+                    }
+
                     if (++_tickCounter % 320 != 0) return;
 
-                    foreach (var player in Utilities.GetPlayers())
+                    // 仅在命令模式下进行周期性刷新，Tab 模式忽略永久状态
+                    if (Config.HudToggleMode == 1)
                     {
-                        if (player == null || !player.IsValid || player.IsBot)
-                            continue;
-
-                        var steamId = player.SteamID.ToString();
-
-                        if (_playerCache.TryGetValue(steamId, out var playerData) && playerData.HUDEnabled)
+                        foreach (var player in Utilities.GetPlayers())
                         {
-                            UpdatePlayerHUDSync(player);
+                            if (player == null || !player.IsValid || player.IsBot)
+                                continue;
+
+                            var steamId = player.SteamID.ToString();
+
+                            if (_playerCache.TryGetValue(steamId, out var playerData) && playerData.HUDEnabled)
+                            {
+                                UpdatePlayerHUDSync(player);
+                            }
                         }
                     }
                 });
@@ -378,20 +421,11 @@ namespace InGameHUD
                 {
                     try
                     {
-                        // Console.WriteLine($"[InGameHUD] Attempting to get credits for {player.PlayerName}");
-
                         if (player != null && player.IsValid)
                         {
                             int playerCredits = _storeApi.GetPlayerCredits(player);
-                            // Console.WriteLine($"[InGameHUD] Credits for {player.PlayerName}: {playerCredits}");
-
                             playerData.CustomData["credits"] = playerCredits.ToString();
-
                             hudBuilder.AppendLine(_localizer["hud.credits", playerCredits]);
-                        }
-                        else
-                        {
-                            // Console.WriteLine("[InGameHUD] Player invalid when trying to get credits");
                         }
                     }
                     catch (Exception ex)
@@ -459,7 +493,15 @@ namespace InGameHUD
                     hudBuilder.AppendLine(_localizer["hud.announcement_content"]);
                 }
 
-                _api?.Native_GameHUD_ShowPermanent(player, MAIN_HUD_CHANNEL, hudBuilder.ToString());
+                // 根据模式选择显示方法
+                if (Config.HudToggleMode == 1)
+                {
+                    _api?.Native_GameHUD_ShowPermanent(player, MAIN_HUD_CHANNEL, hudBuilder.ToString());
+                }
+                else
+                {
+                    _api?.Native_GameHUD_Show(player, MAIN_HUD_CHANNEL, hudBuilder.ToString(), Config.HudTabDurationSec);
+                }
             }
             catch (Exception ex)
             {
@@ -516,6 +558,13 @@ namespace InGameHUD
         private void CommandToggleHUD(CCSPlayerController? player, CommandInfo command)
         {
             if (player == null || !player.IsValid) return;
+
+            // Tab 模式下阻断命令，不改数据库
+            if (Config.HudToggleMode == 2)
+            {
+                player.PrintToChat(_localizer["hud.tab_mode_enabled"]);
+                return;
+            }
 
             var steamId = player.SteamID.ToString();
             if (!_playerCache.TryGetValue(steamId, out var playerData))

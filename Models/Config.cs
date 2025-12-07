@@ -7,7 +7,7 @@ namespace InGameHUD.Models
     public class Config : IBasePluginConfig
     {
         [JsonPropertyName("version")]
-        public int Version { get; set; } = 5;
+        public int Version { get; set; } = 6;
 
         [JsonPropertyName("font_size")]
         public int FontSize { get; set; } = 20;
@@ -74,6 +74,12 @@ namespace InGameHUD.Models
                 }
             }
         }
+
+        [JsonPropertyName("hud_toggle_mode")]
+        public int HudToggleMode { get; set; } = 1; // 1=命令永久显示，2=Tab短暂显示
+
+        [JsonPropertyName("hud_tab_duration_sec")]
+        public float HudTabDurationSec { get; set; } = 3.0f; // Tab 模式显示时长
 
         [JsonPropertyName("hudcommand")]
         public List<string> HUDCommands { get; set; } = ["hud","togglehud"];
