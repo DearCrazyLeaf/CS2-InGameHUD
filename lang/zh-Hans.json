@@ -1,5 +1,5 @@
 {
-  "hud.greeting": "你好！【{0}】",
+  "hud.greeting": "用户 【{0}】",
   "hud.separator": "===================",
   "hud.map_time_remaining": "地图剩余: {0}分{1}秒",
   "hud.map_round_info": "回合剩余: {0}/{1}",
@@ -36,5 +36,7 @@
   "hud.position_usage": "{White}用法: {Lime}!hudpos {White}<{Lime}1-5{White}>",
   "hud.position_help": "{White}-{Lime}1:左上 2:右上 3:左下 4:右下 5:居中",
   "hud.position_changed": "{White}HUD位置{Lime}已更改{White}！",
-  "hud.position_invalid": "{White}无效的位置! 请使用{Lime}1-5{White}！"
+  "hud.position_invalid": "{White}无效的位置! 请使用{Lime}1-5{White}！",
+  "hud.tab_mode_enabled": "{Yellow}当前为TAB模式：按TAB显示HUD（3s）",
+  "hud.tab_on_cooldown": "{Yellow}HUD冷却中，请稍后再试"
 }

@@ -54,7 +54,7 @@ The plugin's configuration file (`InGameHUD.json`) contains the following settin
 
 ```json
 {
-  "version": 1,                      // Don't change this
+  "version": 6,                      // Don't change this
   "font_size": 20,                   // Your font size
   "font_name": "Arial Bold",         // Font family name
   "scale": 0.08,                     // Overall HUD scale
@@ -71,6 +71,8 @@ The plugin's configuration file (`InGameHUD.json`) contains the following settin
   "show_announcement_title": true,   // Display announcement title
   "show_announcement": true,         // Display announcement content
   "text_color": "Orange",            // HUD text color
+  "hud_toggle_mode": 2,
+  "hud_tab_duration_sec": 8,
   "hudcommand": [                    // HUD toggle command customization
     "hud",
     "togglehud"
@@ -163,6 +165,26 @@ The plugin's configuration file (`InGameHUD.json`) contains the following settin
 > If your server is based on time mode, set it to `0`, otherwise set it to `1`!
 > If your server is based on round mode, set it to `1`, otherwise set it to `0`!
 
+## [NEW] HUD Display Modes
+
+### This is a setting block for switching HUD display modes. Details below
+
+| Parameter              | Description                                                   |
+|------------------------|---------------------------------------------------------------|
+| `hud_toggle_mode`      | HUD trigger mode. `1` = always show, `2` = trigger with TAB (Scoreboard) |
+| `hud_tab_duration_sec` | HUD duration in seconds when triggered by TAB (Scoreboard)   |
+
+### Additional Notes
+- This setting allows players to control how the HUD is shown.
+- If set to `1`, the HUD is always shown on screen. Players can toggle it via the `!hud` command (customizable).
+- If set to `2`, pressing TAB (Scoreboard) temporarily shows the HUD. It will automatically hide after the configured duration, and pressing TAB during the duration will show a localized cooldown message. Only after the duration ends can TAB show it again.
+- The display duration can be adjusted via `hud_tab_duration_sec` to fit your server needs.
+
+> [!NOTE]
+> ### Please note!
+> In mode `2`, players cannot toggle HUD with commands.
+> Player display preferences are not saved to database; position change commands remain effective.
+
 ## Custom Content Module
 
 ### This is a special module system for retrieving specific content from database tables to display corresponding information. Here's a detailed description:
@@ -194,7 +216,7 @@ The plugin's configuration file (`InGameHUD.json`) contains the following settin
 
 - For `signin`, the data must be in standard date format. The calculation method computes the difference between the retrieved data and the query time, retaining only the day parameter difference, and finally displays `n days ago` or `today`.
 
-- After modifying these parameters and correctly matching column names, please modify the language file at `...\addons\counterstrikesharp\plugins\CS2-InGameHUD\lang`. For example, for `en`:
+- After modifying these parameters and correctly matching column names, please modify the language file at `.../addons/counterstrikesharp/plugins/CS2-InGameHUD/lang`. For example, for `en`:
 
 ```json
 {
@@ -235,7 +257,9 @@ The plugin's configuration file (`InGameHUD.json`) contains the following settin
   "hud.position_usage": "{White}Usage: {Lime}!hudpos {White}<{Lime}1-5{White}>",
   "hud.position_help": "{Lime}1{White}:TopLeft  {Lime}2{White}:TopRight  {Lime}3{White}:BottomLeft  {Lime}4{White}:BottomRight  {Lime}5{White}:Center",
   "hud.position_changed": "{White}HUD position {Lime}changed{White}!",
-  "hud.position_invalid": "{White}Invalid position! Please use {Lime}1-5{White}!"
+  "hud.position_invalid": "{White}Invalid position! Please use {Lime}1-5{White}!",
+  "hud.tab_mode_enabled": "{Yellow}Scoreboard mode is enabled: Press TAB to show HUD (3s)",
+  "hud.tab_on_cooldown": "{Yellow}HUD is on cooldown. Please wait"
 }
 ```
 - Change "Last Sign-in" to your desired title to adapt to data retrieved from your table. Don't modify `{0}`!
@@ -375,7 +399,7 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
 
 ```json
 {
-  "version": 1,                      // 请勿修改此值
+  "version": 6,                      // 请勿修改此值
   "font_size": 20,                   // 字体大小
   "font_name": "Arial Bold",         // 字体名称
   "scale": 0.08,                     // HUD整体缩放比例
@@ -392,6 +416,8 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
   "show_announcement_title": true,   // 显示公告标题
   "show_announcement": true,         // 显示公告内容
   "text_color": "Orange",            // HUD文字颜色
+  "hud_toggle_mode": 2,              // HUD唤起模式，1为始终显示，2为使用TAB（计分板）按键唤起
+  "hud_tab_duration_sec": 8,         // 使用TAB（计分板）按键唤起HUD时的持续时间，单位为秒
   "hudcommand": [                    // HUD切换命令自定义
     "hud",
     "togglehud"
@@ -484,6 +510,26 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
 > 如果您的服务器基于时间模式，请将其设置为`0`，否则请设置为`1`！
 > 如果您的服务器基于回合制模式，请将其设置为`1`，否则请设置为`0`！
 
+## [新增]HUD显示模式
+
+### 这是一个用于切换HUD显示模式的设置选项，以下是详细介绍
+
+| 参数名称              | 描述
+|-----------------------|-----------------------------------------------------------|
+| `hud_toggle_mode`     | HUD唤起模式，`1`为始终显示，`2`为使用TAB（计分板）按键唤起|
+| `hud_tab_duration_sec`| 使用TAB（计分板）按键唤起HUD时的持续时间，单位为秒|
+
+### 额外说明
+- 这个设置选项允许玩家通过不同的方式来控制HUD的显示
+- 如果设置为`1`，HUD将始终显示在屏幕上，无论玩家是否按下任何键，可以通过命令`!hud`（可自定义）开关HUD
+- 如果设置为`2`，玩家可以通过按下TAB键（计分板键）来临时显示HUD，HUD将在指定的持续时间后自动隐藏，显示期间会处于冷却状态，直到设置的显示结束后才能再次按下TAB键显示HUD
+- 持续时间可以通过`hud_tab_duration_sec`参数进行调整，允许玩家根据自己的需求来设置HUD显示的时间长度
+
+> [!NOTE]
+> ### 请注意！
+> 模式`2`下，玩家不能使用命令开关HUD的显示
+> 且不会保存玩家的显示偏好设置到数据库，位置切换命令仍然有效
+
 ## 自定义内容模块
 
 ### 这是一个特殊的模块系统，用于获取指定数据库表中特定的内容来显示对应的信息，以下是详细介绍
@@ -515,7 +561,7 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
 
 - 在`signin`中，数据必须是标准日期格式，计算方法会根据日期计算获取的数据和查询的时刻日期差距，然后仅保留day参数的差距，最后打印显示`n天前`，`今天`的信息
 
-- 修改完上述参数之后，请修改位于`...\addons\counterstrikesharp\plugins\CS2-InGameHUD\lang`下对应的语言文件，以`zh-Hans`为例：
+- 修改完上述参数之后，请修改位于`.../addons/counterstrikesharp/plugins/CS2-InGameHUD/lang`下对应的语言文件，以`zh-Hans`为例：
 
 ```json
 {
@@ -556,7 +602,9 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
   "hud.position_usage": "{White}用法: {Lime}!hudpos {White}<{Lime}1-5{White}>",
   "hud.position_help": "{Lime}1{White}:左上  {Lime}2{White}:右上  {Lime}3{White}:左下  {Lime}4{White}:右下  {Lime}5{White}:居中",
   "hud.position_changed": "{White}HUD位置{Lime}已更改{White}！",
-  "hud.position_invalid": "{White}无效的位置! 请使用{Lime}1-5{White}！"
+  "hud.position_invalid": "{White}无效的位置! 请使用{Lime}1-5{White}！",
+  "hud.tab_mode_enabled": "{Yellow}当前为TAB模式：按TAB显示HUD（3s）",
+  "hud.tab_on_cooldown": "{Yellow}HUD冷却中，请稍后再试"
 }
 ```
 - 修改"上次签到"为你想要显示的标题来适配你数据表中获取的数据，请勿修改`{0}`!
