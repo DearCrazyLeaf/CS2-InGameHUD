@@ -20,7 +20,7 @@ namespace InGameHUD
     public class InGameHUD : BasePlugin, IPluginConfig<Config>
     {
         public override string ModuleName => "InGame HUD";
-        public override string ModuleVersion => "1.6.0";
+        public override string ModuleVersion => "1.6.1";
         public override string ModuleAuthor => "DearCrazyLeaf";
         public override string ModuleDescription => "Displays customizable HUD for players";
         private int _tickCounter = 0;
@@ -93,7 +93,7 @@ namespace InGameHUD
                 RegisterEventHandler<EventPlayerTeam>(OnPlayerTeam);
                 RegisterListener<Listeners.OnTick>(() =>
                 {
-                    // Tab 模式：按下边沿触发一次短暂显示，并基于配置时长设置冷却；冷却期内提示“冷却中”
+                    // Tab 模式：按下边沿触发一次短暂显示，并基于配置时长设置冷却；冷却期内提示"冷却中"
                     if (Config.HudToggleMode == 2)
                     {
                         foreach (var p in Utilities.GetPlayers())
@@ -107,8 +107,25 @@ namespace InGameHUD
 
                             if (tabDown && !wasDown)
                             {
+                                // 检查玩家是否启用了HUD
+                                var steamIdStr = p.SteamID.ToString();
+                                if (_playerCache.TryGetValue(steamIdStr, out var playerData) && !playerData.HUDEnabled)
+                                {
+                                    p.PrintToChat(_localizer["hud.disabled_tab_mode"]);
+                                    _tabPrevDown.Add(sid);
+                                    continue;
+                                }
+
                                 float now = (float)Server.CurrentTime;
                                 float nextAllowed = _tabNextAllowed.TryGetValue(sid, out var ts) ? ts : 0f;
+                                
+                                // 时间合理性检查：如果冷却时间异常（比如地图切换导致时间重置），重置冷却
+                                if (nextAllowed > now + Config.HudTabDurationSec * 2)
+                                {
+                                    nextAllowed = 0f;
+                                    _tabNextAllowed[sid] = 0f;
+                                }
+                                
                                 if (now >= nextAllowed)
                                 {
                                     UpdatePlayerHUDSync(p);
@@ -559,18 +576,30 @@ namespace InGameHUD
         {
             if (player == null || !player.IsValid) return;
 
-            // Tab 模式下阻断命令，不改数据库
-            if (Config.HudToggleMode == 2)
-            {
-                player.PrintToChat(_localizer["hud.tab_mode_enabled"]);
-                return;
-            }
-
             var steamId = player.SteamID.ToString();
             if (!_playerCache.TryGetValue(steamId, out var playerData))
             {
                 playerData = new PlayerData(steamId);
                 _playerCache[steamId] = playerData;
+            }
+
+            // Tab 模式下也允许开关HUD，但仅切换状态，不立即显示
+            if (Config.HudToggleMode == 2)
+            {
+                playerData.HUDEnabled = !playerData.HUDEnabled;
+
+                if (playerData.HUDEnabled)
+                {
+                    player.PrintToChat(_localizer["hud.enabled"]);
+                }
+                else
+                {
+                    _api?.Native_GameHUD_Remove(player, MAIN_HUD_CHANNEL);
+                    player.PrintToChat(_localizer["hud.disabled_tab_mode"]);
+                }
+
+                SavePlayerSettingsSync(player);
+                return;
             }
 
             bool isInvalidState = !player.PawnIsAlive || player.TeamNum == (int)CsTeam.Spectator;
@@ -696,11 +725,18 @@ namespace InGameHUD
                 return HookResult.Continue;
 
             var steamId = player.SteamID.ToString();
+            ulong steamIdUlong = player.SteamID;
+            
+            // 清理玩家缓存数据
             if (_playerCache.ContainsKey(steamId))
             {
                 _playerCache.Remove(steamId);
                 Console.WriteLine($"[InGameHUD] Removed player data for {player.PlayerName} on disconnect");
             }
+            
+            // 清理TAB模式的冷却数据
+            _tabPrevDown.Remove(steamIdUlong);
+            _tabNextAllowed.Remove(steamIdUlong);
 
             return HookResult.Continue;
         }

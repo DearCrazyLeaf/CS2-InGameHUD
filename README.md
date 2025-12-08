@@ -178,12 +178,8 @@ The plugin's configuration file (`InGameHUD.json`) contains the following settin
 - This setting allows players to control how the HUD is shown.
 - If set to `1`, the HUD is always shown on screen. Players can toggle it via the `!hud` command (customizable).
 - If set to `2`, pressing TAB (Scoreboard) temporarily shows the HUD. It will automatically hide after the configured duration, and pressing TAB during the duration will show a localized cooldown message. Only after the duration ends can TAB show it again.
+- Regardless of whether the setting is `1` or `2`, players can use the `!hud` command to toggle HUD display and `!hudpos <1-5>` to change the HUD position.
 - The display duration can be adjusted via `hud_tab_duration_sec` to fit your server needs.
-
-> [!NOTE]
-> ### Please note!
-> In mode `2`, players cannot toggle HUD with commands.
-> Player display preferences are not saved to database; position change commands remain effective.
 
 ## Custom Content Module
 
@@ -253,12 +249,12 @@ The plugin's configuration file (`InGameHUD.json`) contains the following settin
   "hud.team_spec": "Spectator",
   "hud.enabled": "{White}HUD {Lime}Enabled{White}!",
   "hud.disabled": "{White}HUD {Lime}Disabled{White}!",
+  "hud.disabled_tab_mode": "{Yellow}HUD has been disabled. Use !hud to enable",
   "hud.invalid_state": "{Red}Cannot enable HUD in current state (dead or spectating)!",
   "hud.position_usage": "{White}Usage: {Lime}!hudpos {White}<{Lime}1-5{White}>",
   "hud.position_help": "{Lime}1{White}:TopLeft  {Lime}2{White}:TopRight  {Lime}3{White}:BottomLeft  {Lime}4{White}:BottomRight  {Lime}5{White}:Center",
   "hud.position_changed": "{White}HUD position {Lime}changed{White}!",
   "hud.position_invalid": "{White}Invalid position! Please use {Lime}1-5{White}!",
-  "hud.tab_mode_enabled": "{Yellow}Scoreboard mode is enabled: Press TAB to show HUD (3s)",
   "hud.tab_on_cooldown": "{Yellow}HUD is on cooldown. Please wait"
 }
 ```
@@ -521,14 +517,10 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
 
 ### 额外说明
 - 这个设置选项允许玩家通过不同的方式来控制HUD的显示
-- 如果设置为`1`，HUD将始终显示在屏幕上，无论玩家是否按下任何键，可以通过命令`!hud`（可自定义）开关HUD
+- 如果设置为`1`，HUD将始终显示在屏幕上，无论玩家是否按下任何键，可以通过命令`!hud`（可自定义）开关HUD显示
 - 如果设置为`2`，玩家可以通过按下TAB键（计分板键）来临时显示HUD，HUD将在指定的持续时间后自动隐藏，显示期间会处于冷却状态，直到设置的显示结束后才能再次按下TAB键显示HUD
+- 设置无论`1`或者`2`，玩家都可以通过命令`!hud`来开关HUD显示以及`!hudpos <1-5>`来切换HUD的位置
 - 持续时间可以通过`hud_tab_duration_sec`参数进行调整，允许玩家根据自己的需求来设置HUD显示的时间长度
-
-> [!NOTE]
-> ### 请注意！
-> 模式`2`下，玩家不能使用命令开关HUD的显示
-> 且不会保存玩家的显示偏好设置到数据库，位置切换命令仍然有效
 
 ## 自定义内容模块
 
@@ -598,12 +590,12 @@ Feel free to submit issues or pull requests if you have any questions, suggestio
   "hud.team_spec": "观察",
   "hud.enabled": "{White}HUD{Lime}已启用{White}！",
   "hud.disabled": "{White}HUD{Lime}已禁用{White}！",
+  "hud.disabled_tab_mode": "{Yellow}HUD已禁用，使用!hud开启",
   "hud.invalid_state": "{Red}当前状态无法启用HUD（死亡或观察状态）！",
   "hud.position_usage": "{White}用法: {Lime}!hudpos {White}<{Lime}1-5{White}>",
   "hud.position_help": "{Lime}1{White}:左上  {Lime}2{White}:右上  {Lime}3{White}:左下  {Lime}4{White}:右下  {Lime}5{White}:居中",
   "hud.position_changed": "{White}HUD位置{Lime}已更改{White}！",
   "hud.position_invalid": "{White}无效的位置! 请使用{Lime}1-5{White}！",
-  "hud.tab_mode_enabled": "{Yellow}当前为TAB模式：按TAB显示HUD（3s）",
   "hud.tab_on_cooldown": "{Yellow}HUD冷却中，请稍后再试"
 }
 ```

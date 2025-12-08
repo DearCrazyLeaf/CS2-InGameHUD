@@ -32,11 +32,11 @@
   "hud.team_spec": "觀察者",
   "hud.enabled": "{White}HUD{Lime}已啟用{White}！",
   "hud.disabled": "{White}HUD{Lime}已禁用{White}！",
+  "hud.disabled_tab_mode": "{Yellow}HUD已禁用，使用!hud開啟",
   "hud.invalid_state": "{Red}當前狀態無法啟用HUD（死亡或觀察狀態）！",
   "hud.position_usage": "{White}用法: {Lime}!hudpos {White}<{Lime}1-5{White}>",
   "hud.position_help": "{White}-{Lime}1:左上 2:右上 3:左下 4:右下 5:居中",
   "hud.position_changed": "{White}HUD位置{Lime}已更改{White}！",
   "hud.position_invalid": "{White}無效的位置! 請使用{Lime}1-5{White}！",
-  "hud.tab_mode_enabled": "{Yellow}當前爲TAB模式：按TAB顯示HUD（3s）",
   "hud.tab_on_cooldown": "{Yellow}HUD冷卻中，請稍後再試"
 }
